@@ -1,0 +1,61 @@
+{
+  "schema_version": "gooya.native.source-lock/v1",
+  "model": {
+    "repo_id": "Reza2kn/Gooya-Bozorg-v1.5",
+    "revision": "8844b3a6ebbefa0e1ac4baef494d2e8d7eda9d9c",
+    "release_name": "Gooya Bozorg v1.5",
+    "task": "text-to-speech",
+    "license": "CC-BY-NC-4.0"
+  },
+  "upstream": {
+    "repo_id": "Thomcles/Chatterbox-TTS-Persian-Farsi",
+    "revision": "4e9f6b7043d30d8328bb842b6126676bead8d9de",
+    "weight_status": "byte-identical upstream repackaging"
+  },
+  "runtime_source": {
+    "repo_id": "resemble-ai/chatterbox",
+    "revision": "5de7a54aa4e5e2baadb0182dde554908b48b85c2"
+  },
+  "files": {
+    "grapheme_mtl_merged_expanded_v1.json": {
+      "sha256": "df81a7ca7c31796cbe97f7a7142d5a53b12e88e12417ebe98f66602cafaf0461",
+      "size": 70011
+    },
+    "mtl_tokenizer.json": {
+      "sha256": "e7f9364e2c279b2de19f417a83624d9887532a56daec2ddddac470cc71693253",
+      "size": 68125
+    },
+    "s3gen.safetensors": {
+      "sha256": "2b78103c654207393955e4900aac14a12de8ef25f4b09424f1ef91941f161d4e",
+      "size": 1056484620
+    },
+    "t3_fa.safetensors": {
+      "sha256": "723640dc2b1bbf8f54d471812fae3f8c72c3ed9123d8b5d5d5907d7c084bc207",
+      "size": 2143989752
+    },
+    "ve.safetensors": {
+      "sha256": "f0921cab452fa278bc25cd23ffd59d36f816d7dc5181dd1bef9751a7fb61f63c",
+      "size": 5695784
+    },
+    "samples/canonical.wav": {
+      "sha256": "2fb8f2b236fdc958bed28d497973abc5593976b164761f3316bed1e57f5edac5",
+      "size": 234284
+    }
+  },
+  "architecture": {
+    "sample_rate_hz": 24000,
+    "speech_token_rate_hz": 25,
+    "t3_parameters": 535989248,
+    "t3_layers": 30,
+    "t3_hidden_size": 1024,
+    "t3_attention_heads": 16,
+    "s3gen_parameters": 264041793,
+    "voice_encoder_parameters": 1423618
+  },
+  "fixed_voice": {
+    "reference": "samples/canonical.wav",
+    "exaggeration": 0.5,
+    "cfg_weight": 0.5
+  }
+}
+

@@ -1,0 +1,16 @@
+[package]
+name = "gooya-native-webview"
+version = "1.5.0"
+edition = "2024"
+license = "CC-BY-NC-4.0"
+publish = false
+
+[dependencies]
+anyhow = "1.0"
+arboard = "3"
+base64 = "0.22"
+rfd = "0.15"
+tao = "0.30"
+wry = "0.56"
+serde_json = "1.0"
+gooya-native-desktop = { path = "../desktop" }

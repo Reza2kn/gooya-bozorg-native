@@ -1,0 +1,32 @@
+# Build output
+**/target/
+**/build/
+**/.gradle/
+**/.cxx/
+**/.cache/
+
+# Model weights (download via scripts/download_assets.py)
+desktop/data/
+
+# Local scratch
+*.wav
+*.onnx.data
+!desktop/data/**/*.onnx.data
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Editors
+*.swp
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

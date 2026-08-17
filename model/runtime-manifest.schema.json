@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gouya.app/schemas/gooya-native-runtime-manifest-v1.json",
+  "title": "Gooya Native runtime manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source",
+    "runtime",
+    "quantization",
+    "voice",
+    "graphs",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": {"const": "gooya.native.runtime-manifest/v1"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repo_id", "revision"],
+      "properties": {
+        "repo_id": {"const": "Reza2kn/Gooya-Bozorg-v1.5"},
+        "revision": {"const": "8844b3a6ebbefa0e1ac4baef494d2e8d7eda9d9c"}
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family", "profile", "minimum_os", "versions"],
+      "properties": {
+        "family": {"enum": ["coreml", "tract", "burn-wgpu", "litert"]},
+        "profile": {"enum": ["efficiency", "balanced", "gpu"]},
+        "minimum_os": {"type": "string", "minLength": 1},
+        "versions": {"type": "object", "minProperties": 1}
+      }
+    },
+    "quantization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["weight_bits", "activation_dtype", "scheme", "block_size", "exceptions"],
+      "properties": {
+        "weight_bits": {"const": 4},
+        "activation_dtype": {"enum": ["float16", "float32", "mixed-float"]},
+        "scheme": {"enum": ["linear-symmetric", "linear-asymmetric", "q4_0"]},
+        "block_size": {"type": "integer", "minimum": 16},
+        "exceptions": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "voice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "reference_sha256", "conditioning_sha256"],
+      "properties": {
+        "name": {"const": "canonical"},
+        "reference_sha256": {"const": "2fb8f2b236fdc958bed28d497973abc5593976b164761f3316bed1e57f5edac5"},
+        "conditioning_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "graphs": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "file", "sha256", "size", "inputs", "outputs"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "file": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "size": {"type": "integer", "minimum": 1},
+          "inputs": {"type": "array", "items": {"type": "string"}},
+          "outputs": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "receipt", "source_vs_quant"],
+      "properties": {
+        "status": {"enum": ["pass", "failed", "unverified"]},
+        "receipt": {"type": "string", "minLength": 1},
+        "source_vs_quant": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
