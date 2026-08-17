@@ -162,14 +162,14 @@ fn gpu_provider() -> Result<Option<ort::ep::ExecutionProviderDispatch>> {
     {
         let provider = ort::ep::DirectML::default();
         if ort::ep::ExecutionProvider::is_available(&provider)? {
-            return Ok(Some(provider.build()));
+            return Ok(Some(provider.build().error_on_failure()));
         }
     }
     #[cfg(target_os = "linux")]
     {
         let provider = ort::ep::CUDA::default();
         if ort::ep::ExecutionProvider::is_available(&provider)? {
-            return Ok(Some(provider.build()));
+            return Ok(Some(provider.build().error_on_failure()));
         }
     }
     #[cfg(target_os = "macos")]
@@ -182,7 +182,7 @@ fn gpu_provider() -> Result<Option<ort::ep::ExecutionProviderDispatch>> {
             }
         }
         if ort::ep::ExecutionProvider::is_available(&provider)? {
-            return Ok(Some(provider.build()));
+            return Ok(Some(provider.build().error_on_failure()));
         }
     }
     Ok(None)
