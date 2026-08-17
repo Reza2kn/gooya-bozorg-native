@@ -5,8 +5,9 @@
 **/.cxx/
 **/.cache/
 
-# Model weights (download via scripts/download_assets.py)
+# Model weights (download via `gooya-fetch-assets`)
 desktop/data/
+dist/
 
 # Local scratch
 *.wav

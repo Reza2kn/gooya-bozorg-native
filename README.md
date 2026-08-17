@@ -39,8 +39,8 @@ Windows. No cloud, no telemetry, no text left your machine. ⚡
 ## 🚀 Quick start (macOS)
 
 ```bash
-# 1. Get the model weights (≈430 MB) from Hugging Face Hub
-python scripts/download_assets.py
+# 1. Get the model weights (≈430 MB) from Hugging Face Hub — pure Rust, no Python
+cargo run --release --manifest-path desktop/Cargo.toml --bin gooya-fetch-assets
 
 # 2. Build the webview app
 cargo build --release --manifest-path webview/Cargo.toml
@@ -48,6 +48,16 @@ cargo build --release --manifest-path webview/Cargo.toml
 # 3. Run
 ./webview/target/release/gooya-native-webview
 ```
+
+### 📦 Installable macOS app
+
+```bash
+./scripts/bundle_app.sh
+open dist/Gooya.app            # or use dist/Gooya-1.5-macOS.dmg
+```
+
+The bundle embeds the full runtime assets (weights + tokenizer), the Vazirmatn
+font, and the signed executable — a self-contained, drag-and-drop app. 🖥️
 
 ### Linux (CUDA GPU) / Windows (DirectML)
 

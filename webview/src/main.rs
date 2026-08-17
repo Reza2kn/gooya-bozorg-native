@@ -58,6 +58,15 @@ fn data_dir() -> PathBuf {
     if let Ok(dir) = std::env::var("GOOYA_MODEL_DIR") {
         return PathBuf::from(dir);
     }
+    // Packaged app bundle: <Gooya.app>/Contents/data
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(parent) = exe.parent() {
+            let bundled = parent.join("../data");
+            if bundled.join("tract-bundle-b168").is_dir() {
+                return bundled;
+            }
+        }
+    }
     let crate_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let candidate = crate_dir.join("../desktop/data");
     if candidate.join("tract-bundle-b168").is_dir() {
