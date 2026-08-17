@@ -125,6 +125,24 @@ require validation on their target hosts.
 Linux/Windows builds and physical GPU execution still require validation on
 their target hosts; the current verified hardware receipt is macOS CPU.
 
+### Measured Linux CUDA timings (RTX 5080, Blackwell sm_120, b168)
+
+The stock `ort` binaries (ort.pyke.io) ship **no sm_120 kernels**, so CUDA
+silently fell back to CPU on RTX 50-series. Using the official
+`onnxruntime-gpu` wheel (which has Blackwell kernels) via
+`scripts/cuda_setup.sh`:
+
+| Path | t3 | flow (10 steps) | vocoder | total |
+|---|---|---|---|---|
+| ORT CPU + Q4 | ~1.88 s | ~7.6 s | ~1.96 s | ~11.5 s |
+| **ORT CUDA + Q4 (sm_120)** | **~1.49 s** | **~1.34 s** | ~2.04 s | **~4.9 s** |
+
+CUDA is **~2.3× faster overall**, with the flow step **~5.7× faster**
+(convs → cuDNN, matmuls → cuBLAS on the 5080). T3 emits byte-identical
+tokens; the vocoder's mel drift vs CPU is ≤0.018 (fp32 rounding) and ASR
+confirms identical output. The vocoder still runs on tract/CPU and is now the
+largest single contributor — the next perf target.
+
 ## Long-text inference
 
 The b168 flow path can emit at most 168 speech tokens. Probing showed a
