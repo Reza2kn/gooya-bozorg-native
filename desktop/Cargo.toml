@@ -14,6 +14,10 @@ name = "gooya-native-desktop"
 path = "src/main.rs"
 required-features = ["gui"]
 
+[[bin]]
+name = "gooya-fetch-assets"
+path = "src/bin/gooya_fetch_assets.rs"
+
 [dependencies]
 anyhow = "1.0"
 arabic_reshaper = { version = "0.4.2", optional = true }
