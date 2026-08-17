@@ -5,10 +5,19 @@ edition = "2024"
 license = "CC-BY-NC-4.0"
 publish = false
 
+[features]
+default = ["gui"]
+gui = ["dep:eframe", "dep:arabic_reshaper"]
+
+[[bin]]
+name = "gooya-native-desktop"
+path = "src/main.rs"
+required-features = ["gui"]
+
 [dependencies]
 anyhow = "1.0"
-arabic_reshaper = "0.4.2"
-eframe = { version = "0.31.1", default-features = false, features = ["accesskit", "wgpu", "wayland", "x11"] }
+arabic_reshaper = { version = "0.4.2", optional = true }
+eframe = { version = "0.31.1", default-features = false, features = ["accesskit", "wgpu", "wayland", "x11"], optional = true }
 ndarray = "0.17"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
