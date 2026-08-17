@@ -5,6 +5,8 @@ Windows. No cloud, no telemetry, no text left your machine. ⚡
 
 **گویا بزرگ — خوانش آفلاین فارسی روی همین دستگاه.**
 
+![گویا Bozorg 1.5](docs/gooya-hero.jpeg)
+
 ---
 
 ## ✨ Features
