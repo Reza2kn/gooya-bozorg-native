@@ -2,7 +2,7 @@
 //! Hugging Face Hub into `desktop/data/`. Uses the system `curl` binary, so no
 //! Python or extra HTTP dependencies are needed.
 
-use anyhow::{bail, ensure, Result};
+use anyhow::{bail, Result};
 use std::path::PathBuf;
 use std::process::Command;
 

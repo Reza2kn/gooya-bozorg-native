@@ -33,16 +33,16 @@ tract-linalg = { version = "=0.23.4", features = ["multithread-mm"] }
 env_logger = "0.11"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-ort = { version = "2.0.0-rc.13", features = ["lax-feature-matching", "coreml"] }
+ort = { version = "2.0.0-rc.13", default-features = false, features = ["std", "ndarray", "download-binaries", "copy-dylibs", "api-27", "tls-rustls", "lax-feature-matching", "coreml"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
-ort = { version = "2.0.0-rc.13", features = ["lax-feature-matching", "cuda"] }
+ort = { version = "2.0.0-rc.13", default-features = false, features = ["std", "ndarray", "download-binaries", "copy-dylibs", "api-27", "tls-rustls", "lax-feature-matching", "cuda"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
-ort = { version = "2.0.0-rc.13", features = ["lax-feature-matching", "directml"] }
+ort = { version = "2.0.0-rc.13", default-features = false, features = ["std", "ndarray", "download-binaries", "copy-dylibs", "api-27", "tls-rustls", "lax-feature-matching", "directml"] }
 
 [target.'cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))'.dependencies]
-ort = "2.0.0-rc.13"
+ort = { version = "2.0.0-rc.13", default-features = false, features = ["std", "ndarray", "download-binaries", "copy-dylibs", "api-27", "tls-rustls"] }
 
 [profile.release]
 opt-level = 3
