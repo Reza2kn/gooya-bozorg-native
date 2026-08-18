@@ -148,6 +148,23 @@ On this model it produced no speedup and no TRT engines — the dynamic-shape
 graphs and Q4 `MatMulNBits` ops do not partition onto TensorRT, so the EP
 steps down to CUDA. CUDA remains the fastest path (~3.2 s).
 
+### Cross-platform GUI status
+
+The Linux (webkit2gtk/tao) and Windows (WebView2) webview shells compile and
+the full pipeline runs on CUDA (verified headless on the RTX 5080). Visual
+launch of the GUI must be validated on the physical desktop sessions (an SSH
+shell has no access to the X/Wayland display). Build the installable packages
+per OS:
+
+- macOS: `scripts/bundle_app.sh` → `.app`/`.dmg`
+- Linux: `scripts/package_linux.sh` → `.tar.xz`
+- Windows: `powershell -File scripts/package_windows.ps1` → `.zip`
+
+`scripts/cuda_setup.sh` wires the official ONNX Runtime (Blackwell sm_120
+kernels) into Linux CUDA builds. GitHub Actions
+(`.github/workflows/release.yml`) builds all three on a `v*` tag and attaches
+them to the release.
+
 ## Long-text inference
 
 The b168 flow path can emit at most 168 speech tokens. Probing showed a
