@@ -91,27 +91,43 @@ impl Graph {
 impl OrtGraph {
     fn load(path: &Path, threads: usize) -> Result<Self> {
         let _ = ort::init().commit();
+        let device = std::env::var("GOOYA_DEVICE").unwrap_or_else(|_| "cpu".to_owned());
+        let mut providers = Vec::new();
+        if device != "cpu" {
+            providers = gpu_providers()?;
+            if providers.is_empty() && device == "gpu" {
+                bail!("GOOYA_DEVICE=gpu requested, but this binary has no available GPU provider");
+            }
+        }
+        // Try the fastest available provider set first, falling back stepwise
+        // (e.g. TensorRT+CUDA -> CUDA -> CPU) so a broken EP never hard-fails.
+        let mut last_error = None;
+        for cut in (0..=providers.len()).rev() {
+            match Self::build_session(path, threads, &providers[..cut]) {
+                Ok(session) => return Ok(Self { session: Mutex::new(session) }),
+                Err(error) => last_error = Some(error),
+            }
+        }
+        Err(last_error.unwrap_or_else(|| anyhow::anyhow!("failed to build ONNX Runtime session")))
+    }
+
+    fn build_session(
+        path: &Path,
+        threads: usize,
+        providers: &[ort::ep::ExecutionProviderDispatch],
+    ) -> Result<ort::session::Session> {
         let builder = ort::session::Session::builder().map_err(|error| anyhow::anyhow!("{error}"))?;
         let mut builder = builder
             .with_intra_threads(threads)
             .map_err(|error| anyhow::anyhow!("{error}"))?;
-        let device = std::env::var("GOOYA_DEVICE").unwrap_or_else(|_| "cpu".to_owned());
-        if device != "cpu" {
-            if let Some(provider) = gpu_provider()? {
-                builder = builder
-                    .with_execution_providers([
-                        provider,
-                        ort::ep::CPU::default().build(),
-                    ])
-                    .map_err(|error| anyhow::anyhow!("{error}"))?;
-            } else if device == "gpu" {
-                bail!("GOOYA_DEVICE=gpu requested, but this binary has no available GPU provider");
-            }
+        if !providers.is_empty() {
+            let mut list = providers.to_vec();
+            list.push(ort::ep::CPU::default().build());
+            builder = builder
+                .with_execution_providers(list)
+                .map_err(|error| anyhow::anyhow!("{error}"))?;
         }
-        let session = builder
-            .commit_from_file(path)
-            .map_err(|error| anyhow::anyhow!("{error}"))?;
-        Ok(Self { session: Mutex::new(session) })
+        builder.commit_from_file(path).map_err(|error| anyhow::anyhow!("{error}"))
     }
 
     fn tensor(value: Tensor) -> Result<ort::value::DynTensor> {
@@ -157,20 +173,27 @@ impl OrtGraph {
     }
 }
 
-fn gpu_provider() -> Result<Option<ort::ep::ExecutionProviderDispatch>> {
+fn gpu_providers() -> Result<Vec<ort::ep::ExecutionProviderDispatch>> {
+    let mut providers = Vec::new();
     #[cfg(target_os = "windows")]
     {
         let provider = ort::ep::DirectML::default();
         if ort::ep::ExecutionProvider::is_available(&provider)? {
-            return Ok(Some(provider.build().error_on_failure()));
+            providers.push(provider.build());
         }
     }
     #[cfg(target_os = "linux")]
     {
-        let provider = ort::ep::CUDA::default();
-        if ort::ep::ExecutionProvider::is_available(&provider)? {
-            return Ok(Some(provider.build().error_on_failure()));
-        }
+        let trt = ort::ep::TensorRT::default()
+            .with_max_workspace_size(1 << 30)
+            .with_fp16(true)
+            .with_engine_cache(true)
+            .with_engine_cache_path(std::env::temp_dir().join("gooya-trt-cache"))
+            .with_detailed_build_log(true);
+        providers.push(trt.build().fail_silently());
+        let cuda = ort::ep::CUDA::default()
+            .with_arena_extend_strategy(ort::ep::ArenaExtendStrategy::SameAsRequested);
+        providers.push(cuda.build().fail_silently());
     }
     #[cfg(target_os = "macos")]
     {
@@ -181,11 +204,9 @@ fn gpu_provider() -> Result<Option<ort::ep::ExecutionProviderDispatch>> {
                 provider = provider.with_arbitrary_config("ml_compute_units", units.to_string());
             }
         }
-        if ort::ep::ExecutionProvider::is_available(&provider)? {
-            return Ok(Some(provider.build().error_on_failure()));
-        }
+        providers.push(provider.build());
     }
-    Ok(None)
+    Ok(providers)
 }
 
 impl RuntimeGraph {
