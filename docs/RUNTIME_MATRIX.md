@@ -143,6 +143,11 @@ CUDA is **~3.6× faster overall**: flow ~5.7× and the vocoder ~6.6×
 tokens; mel drift vs CPU is ≤0.018 (fp32 rounding) and ASR confirms identical
 output.
 
+TensorRT EP was also wired (TRT → CUDA → CPU automatic fallback) and tested.
+On this model it produced no speedup and no TRT engines — the dynamic-shape
+graphs and Q4 `MatMulNBits` ops do not partition onto TensorRT, so the EP
+steps down to CUDA. CUDA remains the fastest path (~3.2 s).
+
 ## Long-text inference
 
 The b168 flow path can emit at most 168 speech tokens. Probing showed a
