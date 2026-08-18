@@ -13,6 +13,9 @@ Windows. No cloud, no telemetry, no text left your machine. ⚡
 
 - 🗣️ **Real Persian TTS** for the Gooya Bozorg v1.5 voice, straight from the
   grapheme tokenizer (no G2P needed).
+- 📥 **Weights from Hugging Face** — the Q4 bundle downloads automatically from
+  [Reza2kn/gooya-bozorg-v1.5-native](https://huggingface.co/Reza2kn/gooya-bozorg-v1.5-native)
+  on first launch, so installers stay tiny.
 - 📱 **Native webview UI** — real RTL text input with full Persian shaping,
   bidi, copy/paste, undo/redo, and native save dialogs.
 - ⚡ **Fast local inference** — ONNX Runtime for T3 + flow-step, tract for the
@@ -159,6 +162,7 @@ This project is non-commercial research/creative code. 🎨
 
 ## 🙏 Thanks
 
-- [Reza2kn/gooya-bozorg-v1.5](https://huggingface.co/Reza2kn/Gooya-Bozorg-v1.5) — the TTS model
+- **Model (int4, what this app runs):** [Reza2kn/gooya-bozorg-v1.5-native](https://huggingface.co/Reza2kn/gooya-bozorg-v1.5-native) — the Q4 runtime bundle
+- **Model (source):** [Reza2kn/Gooya-Bozorg-v1.5](https://huggingface.co/Reza2kn/Gooya-Bozorg-v1.5) — the full-precision original
 - ONNX Runtime / tract / egui / wry — the runtimes
 - You, for reading this far 💛
