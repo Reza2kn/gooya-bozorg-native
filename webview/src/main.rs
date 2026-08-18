@@ -476,6 +476,7 @@ const HTML: &str = r#"
     }
     if(k==='c'||k==='x'){
       if(isField){
+        e.preventDefault(); // stop WebKit's inline clipboard handshake (deadlocks on Wayland)
         var sel=t.value.substring(t.selectionStart,t.selectionEnd);
         if(sel){
           if(k==='c'){window.ipc.postMessage('copy:'+sel);}
