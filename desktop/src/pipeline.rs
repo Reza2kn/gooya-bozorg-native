@@ -579,10 +579,10 @@ fn run_flow(dir: &Path, tokens: &[i64], bucket: usize) -> Result<Vec<f32>> {
 
 fn run_vocoder(dir: &Path, mel: &[f32], tokens: &[i64]) -> Result<(Vec<f32>, Vec<f32>, Vec<f32>, Vec<f32>)> {
     let source = timer("vocoder.load.source", || {
-        Graph::load(&dir.join(format!("s3-vocoder-source-b{BUCKET}.onnx")))
+        RuntimeGraph::load(&dir.join(format!("s3-vocoder-source-b{BUCKET}.onnx")), 4)
     })?;
     let spectral = timer("vocoder.load.spectral", || {
-        Graph::load(&dir.join(format!("s3-vocoder-spectral-b{BUCKET}.onnx")))
+        RuntimeGraph::load(&dir.join(format!("s3-vocoder-spectral-b{BUCKET}.onnx")), 4)
     })?;
     let nch = 80usize;
     let melframes = BUCKET * 2; // vocoder consumes the full padded bucket mel
