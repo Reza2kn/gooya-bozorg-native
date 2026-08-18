@@ -312,9 +312,12 @@ fn create_window(
     };
     let ready = assets_complete(&root);
     let root_str = serde_json::to_string(&root.display().to_string()).unwrap_or_else(|_| "\"\"".into());
+    // Linux uses WebKit's native clipboard (custom IPC clipboard deadlocks
+    // GTK/Wayland); macOS/Windows use our Rust-path clipboard.
+    let clip = !cfg!(target_os = "linux");
     let _ = webview.evaluate_script(&format!(
-        "window.__gooyaInit({}, {})",
-        ready, root_str
+        "window.__gooyaInit({}, {}, {})",
+        ready, clip, root_str
     ));
     (window, webview)
 }
@@ -417,7 +420,8 @@ const HTML: &str = r#"
     document.getElementById('dlstatus').textContent='در حال دانلود…';
     window.ipc.postMessage('fetch');
   }
-  window.__gooyaInit=function(ready){
+  window.__gooyaInit=function(ready,clip){
+    window.__gooyaClip=clip===true;
     var dl=document.getElementById('dl'), c=document.getElementById('composer');
     if(ready){ dl.style.display='none'; c.style.display='block'; var t=document.getElementById('t'); if(t)t.focus(); }
     else { c.style.display='none'; dl.style.display='block'; }
@@ -465,6 +469,9 @@ const HTML: &str = r#"
   };
   document.addEventListener('keydown',function(e){
     if(e.key==='Enter'&&!e.shiftKey){speak();return;}
+    // Linux: let WebKitGTK handle Ctrl+C/V/X/A/Z natively (our IPC clipboard
+    // deadlocks the GTK thread there).
+    if(!window.__gooyaClip)return;
     var mod=e.metaKey||e.ctrlKey;
     if(!mod)return;
     var k=(e.key||'').toLowerCase();
