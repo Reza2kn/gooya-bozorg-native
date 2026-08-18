@@ -135,13 +135,13 @@ silently fell back to CPU on RTX 50-series. Using the official
 | Path | t3 | flow (10 steps) | vocoder | total |
 |---|---|---|---|---|
 | ORT CPU + Q4 | ~1.88 s | ~7.6 s | ~1.96 s | ~11.5 s |
-| **ORT CUDA + Q4 (sm_120)** | **~1.49 s** | **~1.34 s** | ~2.04 s | **~4.9 s** |
+| ORT CUDA + Q4, tract vocoder | ~1.49 s | ~1.34 s | ~2.04 s | ~4.9 s |
+| **ORT CUDA + Q4, vocoder on CUDA** | **~1.54 s** | **~1.34 s** | **~0.31 s** | **~3.2 s** |
 
-CUDA is **~2.3× faster overall**, with the flow step **~5.7× faster**
+CUDA is **~3.6× faster overall**: flow ~5.7× and the vocoder ~6.6×
 (convs → cuDNN, matmuls → cuBLAS on the 5080). T3 emits byte-identical
-tokens; the vocoder's mel drift vs CPU is ≤0.018 (fp32 rounding) and ASR
-confirms identical output. The vocoder still runs on tract/CPU and is now the
-largest single contributor — the next perf target.
+tokens; mel drift vs CPU is ≤0.018 (fp32 rounding) and ASR confirms identical
+output.
 
 ## Long-text inference
 
