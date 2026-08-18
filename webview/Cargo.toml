@@ -13,4 +13,4 @@ rfd = "0.15"
 tao = "0.30"
 wry = "0.56"
 serde_json = "1.0"
-gooya-native-desktop = { path = "../desktop" }
+gooya-native-desktop = { path = "../desktop", default-features = false }

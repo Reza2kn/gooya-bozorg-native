@@ -51,15 +51,19 @@ cargo build --release --manifest-path webview/Cargo.toml
 ./webview/target/release/gooya-native-webview
 ```
 
-### 📦 Installable macOS app
+### 📦 Installable apps (all platforms)
 
-```bash
-./scripts/bundle_app.sh
-open dist/Gooya.app            # or use dist/Gooya-1.5-macOS.dmg
-```
+| OS | Package | Build |
+| --- | --- | --- |
+| 🍎 macOS | `dist/Gooya-1.5-macOS.dmg` (drag-and-drop `.app`) | `./scripts/bundle_app.sh` |
+| 🐧 Linux | `dist/Gooya-Linux-x86_64.tar.xz` (self-contained + `install.sh`) | `./scripts/package_linux.sh` |
+| 🪟 Windows | `dist/Gooya-Windows-x86_64.zip` (exe + data + launcher) | `powershell -File scripts/package_windows.ps1` |
 
 The bundle embeds the full runtime assets (weights + tokenizer), the Vazirmatn
-font, and the signed executable — a self-contained, drag-and-drop app. 🖥️
+font, and the executable — fully offline and self-contained. 🖥️
+
+GitHub Actions builds all three automatically on a `v*` tag
+(`.github/workflows/release.yml`) and attaches them to the release.
 
 ### Linux (CUDA GPU) / Windows (DirectML)
 

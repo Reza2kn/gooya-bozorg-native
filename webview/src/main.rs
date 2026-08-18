@@ -202,12 +202,12 @@ fn create_window(
 
 const FONT_PATH: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/../../GooyaCoreMLDemo/Gooya/Resources/Fonts/Vazirmatn-Regular.ttf"
+    "/assets/Vazirmatn-Regular.ttf"
 );
 
 fn app_html() -> String {
     use base64::Engine as _;
-    let font_bytes = include_bytes!("../../../GooyaCoreMLDemo/Gooya/Resources/Fonts/Vazirmatn-Regular.ttf");
+    let font_bytes = include_bytes!("../assets/Vazirmatn-Regular.ttf");
     let _ = FONT_PATH;
     let font_uri = format!(
         "data:font/ttf;base64,{}",
