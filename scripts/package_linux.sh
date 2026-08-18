@@ -29,7 +29,8 @@ cp -R "$ROOT/desktop/data/." "$PKG/data/"
 
 cat > "$PKG/bin/Gooya.sh" <<SH
 #!/usr/bin/env bash
-HERE="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT="\$(readlink -f "\${BASH_SOURCE[0]}")"
+HERE="\$(cd "\$(dirname "\$SCRIPT")/.." && pwd)"
 export GOOYA_MODEL_DIR="\$HERE/data"
 export LD_LIBRARY_PATH="\$HERE/lib:\${LD_LIBRARY_PATH:-}"
 "\$HERE/bin/Gooya" "\$@"
