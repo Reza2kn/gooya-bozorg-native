@@ -21,6 +21,58 @@ const SEED: u64 = 20260816;
 const MAX_TEXT_TOKENS_PER_CHUNK: usize = 64;
 const CHUNK_PAUSE_SAMPLES: usize = SAMPLE_RATE as usize * 160 / 1000;
 
+/// Files fetched from the Hugging Face release repo, relative to the model
+/// data root. Shared by the asset fetcher and the app's first-run download.
+pub const ASSET_FILES: &[(&str, &str)] = &[
+    (
+        "grapheme_mtl_merged_expanded_v1.json",
+        "grapheme_mtl_merged_expanded_v1.json",
+    ),
+    ("tract-bundle-b168/t3-prefill.onnx", "tract-bundle-b168/t3-prefill.onnx"),
+    ("tract-bundle-b168/t3-decode.onnx", "tract-bundle-b168/t3-decode.onnx"),
+    ("tract-bundle-b168/t3-q4-shared.data", "tract-bundle-b168/t3-q4-shared.data"),
+    (
+        "tract-bundle-b168/s3-flow-prepare-b168.onnx",
+        "tract-bundle-b168/s3-flow-prepare-b168.onnx",
+    ),
+    (
+        "tract-bundle-b168/s3-flow-prepare-b168.onnx.data",
+        "tract-bundle-b168/s3-flow-prepare-b168.onnx.data",
+    ),
+    (
+        "tract-bundle-b168/s3-flow-prepare-b168.folded.onnx",
+        "tract-bundle-b168/s3-flow-prepare-b168.folded.onnx",
+    ),
+    (
+        "tract-bundle-b168/s3-flow-prepare-b168.folded.onnx.data",
+        "tract-bundle-b168/s3-flow-prepare-b168.folded.onnx.data",
+    ),
+    (
+        "tract-bundle-b168/s3-flow-step-b168.onnx",
+        "tract-bundle-b168/s3-flow-step-b168.onnx",
+    ),
+    (
+        "tract-bundle-b168/s3-flow-step-b168.onnx.data",
+        "tract-bundle-b168/s3-flow-step-b168.onnx.data",
+    ),
+    (
+        "tract-bundle-b168/s3-vocoder-source-b168.onnx",
+        "tract-bundle-b168/s3-vocoder-source-b168.onnx",
+    ),
+    (
+        "tract-bundle-b168/s3-vocoder-source-b168.onnx.data",
+        "tract-bundle-b168/s3-vocoder-source-b168.onnx.data",
+    ),
+    (
+        "tract-bundle-b168/s3-vocoder-spectral-b168.onnx",
+        "tract-bundle-b168/s3-vocoder-spectral-b168.onnx",
+    ),
+    (
+        "tract-bundle-b168/s3-vocoder-spectral-b168.onnx.data",
+        "tract-bundle-b168/s3-vocoder-spectral-b168.onnx.data",
+    ),
+];
+
 /// Results of a full synthesis run.
 pub struct SynthesisReport {
     pub tokens: Vec<i64>,
@@ -187,13 +239,6 @@ fn gpu_providers() -> Result<Vec<ort::ep::ExecutionProviderDispatch>> {
     }
     #[cfg(target_os = "linux")]
     {
-        let trt = ort::ep::TensorRT::default()
-            .with_max_workspace_size(1 << 30)
-            .with_fp16(true)
-            .with_engine_cache(true)
-            .with_engine_cache_path(std::env::temp_dir().join("gooya-trt-cache").display().to_string())
-            .with_detailed_build_log(true);
-        providers.push(trt.build().fail_silently());
         let cuda = ort::ep::CUDA::default()
             .with_arena_extend_strategy(ort::ep::ArenaExtendStrategy::SameAsRequested);
         providers.push(cuda.build().fail_silently());

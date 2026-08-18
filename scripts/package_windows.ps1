@@ -10,29 +10,16 @@ $Root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $Dist = Join-Path $Root "dist"
 $Pkg = Join-Path $Dist "Gooya"
 
-Write-Host ":: fetching model assets (if missing)"
-if (-not (Test-Path (Join-Path $Root "desktop\data\tract-bundle-b168\t3-prefill.onnx"))) {
-    cargo run --release --no-default-features --manifest-path (Join-Path $Root "desktop\Cargo.toml") --bin gooya-fetch-assets
-}
-
 Write-Host ":: building webview shell"
 cargo build --release --manifest-path (Join-Path $Root "webview\Cargo.toml")
 
 Write-Host ":: assembling package"
 if (Test-Path $Pkg) { Remove-Item -Recurse -Force $Pkg }
-New-Item -ItemType Directory -Force -Path (Join-Path $Pkg "bin"), (Join-Path $Pkg "data") | Out-Null
+New-Item -ItemType Directory -Force -Path (Join-Path $Pkg "bin") | Out-Null
 
 Copy-Item (Join-Path $Root "webview\target\release\gooya-native-webview.exe") (Join-Path $Pkg "bin\Gooya.exe")
 Copy-Item (Join-Path $Root "webview\target\release\*.dll") (Join-Path $Pkg "bin\") -ErrorAction SilentlyContinue
-Copy-Item -Recurse (Join-Path $Root "desktop\data\*") (Join-Path $Pkg "data\")
-
-$bat = @"
-@echo off
-set "HERE=%~dp0.."
-set "GOOYA_MODEL_DIR=%HERE%\data"
-"%~dp0Gooya.exe" %*
-"@
-Set-Content -Path (Join-Path $Pkg "bin\Gooya.bat") -Value $bat -Encoding ASCII
+Copy-Item (Join-Path $Root "assets\icon\Gooya.ico") (Join-Path $Pkg "bin\Gooya.ico")
 
 Write-Host ":: packaging"
 $Zip = Join-Path $Dist "Gooya-Windows-x86_64.zip"

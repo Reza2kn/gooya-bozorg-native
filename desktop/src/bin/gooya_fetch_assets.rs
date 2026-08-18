@@ -3,60 +3,11 @@
 //! Python or extra HTTP dependencies are needed.
 
 use anyhow::{bail, Result};
+use gooya_native_desktop::pipeline::ASSET_FILES;
 use std::path::PathBuf;
 use std::process::Command;
 
 const HF_REPO: &str = "https://huggingface.co/Reza2kn/gooya-bozorg-v1.5-native/resolve/main";
-
-const FILES: &[(&str, &str)] = &[
-    (
-        "grapheme_mtl_merged_expanded_v1.json",
-        "grapheme_mtl_merged_expanded_v1.json",
-    ),
-    ("tract-bundle-b168/t3-prefill.onnx", "tract-bundle-b168/t3-prefill.onnx"),
-    ("tract-bundle-b168/t3-decode.onnx", "tract-bundle-b168/t3-decode.onnx"),
-    ("tract-bundle-b168/t3-q4-shared.data", "tract-bundle-b168/t3-q4-shared.data"),
-    (
-        "tract-bundle-b168/s3-flow-prepare-b168.onnx",
-        "tract-bundle-b168/s3-flow-prepare-b168.onnx",
-    ),
-    (
-        "tract-bundle-b168/s3-flow-prepare-b168.onnx.data",
-        "tract-bundle-b168/s3-flow-prepare-b168.onnx.data",
-    ),
-    (
-        "tract-bundle-b168/s3-flow-prepare-b168.folded.onnx",
-        "tract-bundle-b168/s3-flow-prepare-b168.folded.onnx",
-    ),
-    (
-        "tract-bundle-b168/s3-flow-prepare-b168.folded.onnx.data",
-        "tract-bundle-b168/s3-flow-prepare-b168.folded.onnx.data",
-    ),
-    (
-        "tract-bundle-b168/s3-flow-step-b168.onnx",
-        "tract-bundle-b168/s3-flow-step-b168.onnx",
-    ),
-    (
-        "tract-bundle-b168/s3-flow-step-b168.onnx.data",
-        "tract-bundle-b168/s3-flow-step-b168.onnx.data",
-    ),
-    (
-        "tract-bundle-b168/s3-vocoder-source-b168.onnx",
-        "tract-bundle-b168/s3-vocoder-source-b168.onnx",
-    ),
-    (
-        "tract-bundle-b168/s3-vocoder-source-b168.onnx.data",
-        "tract-bundle-b168/s3-vocoder-source-b168.onnx.data",
-    ),
-    (
-        "tract-bundle-b168/s3-vocoder-spectral-b168.onnx",
-        "tract-bundle-b168/s3-vocoder-spectral-b168.onnx",
-    ),
-    (
-        "tract-bundle-b168/s3-vocoder-spectral-b168.onnx.data",
-        "tract-bundle-b168/s3-vocoder-spectral-b168.onnx.data",
-    ),
-];
 
 fn main() -> Result<()> {
     let dest = std::env::var("GOOYA_MODEL_DIR")
@@ -65,7 +16,7 @@ fn main() -> Result<()> {
         .or_else(|| Some(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("data")))
         .expect("data dir");
 
-    for (remote, local) in FILES {
+    for (remote, local) in ASSET_FILES {
         let out = dest.join(local);
         if let Some(parent) = out.parent() {
             std::fs::create_dir_all(parent)?;

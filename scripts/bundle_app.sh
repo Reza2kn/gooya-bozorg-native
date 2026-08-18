@@ -13,10 +13,12 @@ cargo build --release --manifest-path "$ROOT/webview/Cargo.toml"
 
 echo ":: assembling $APP_NAME.app"
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/data"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 cp "$ROOT/webview/target/release/gooya-native-webview" "$APP/Contents/MacOS/$APP_NAME"
-cp -R "$ROOT/desktop/data/." "$APP/Contents/data/"
+# Icon + app resources; the model weights are fetched on first launch, so the
+# app stays small.
+cp "$ROOT/assets/icon/Gooya.icns" "$APP/Contents/Resources/$APP_NAME.icns"
 chmod +x "$APP/Contents/MacOS/$APP_NAME"
 
 cat > "$APP/Contents/Info.plist" <<PLIST
@@ -28,6 +30,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleDisplayName</key><string>گویا</string>
   <key>CFBundleIdentifier</key><string>$IDENTIFIER</string>
   <key>CFBundleExecutable</key><string>$APP_NAME</string>
+  <key>CFBundleIconFile</key><string>$APP_NAME</string>
   <key>CFBundleVersion</key><string>1.5.0</string>
   <key>CFBundleShortVersionString</key><string>1.5.0</string>
   <key>CFBundlePackageType</key><string>APPL</string>

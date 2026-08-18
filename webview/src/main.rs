@@ -14,6 +14,8 @@ use gooya_native_desktop::pipeline;
 enum UserEvent {
     Done(Result<String, String>),
     Paste(Result<String, String>),
+    FetchProgress { done: usize, total: usize, name: String },
+    FetchDone(Result<String, String>),
 }
 
 fn main() -> wry::Result<()> {
@@ -49,30 +51,115 @@ fn main() -> wry::Result<()> {
                 );
                 let _ = webview.evaluate_script(&script);
             }
+            Event::UserEvent(UserEvent::FetchProgress { done, total, name }) => {
+                let script = format!(
+                    "window.__gooyaFetchProgress({}, {}, {})",
+                    done,
+                    total,
+                    serde_json::to_string(&name).unwrap_or_else(|_| "\"\"".into())
+                );
+                let _ = webview.evaluate_script(&script);
+            }
+            Event::UserEvent(UserEvent::FetchDone(result)) => {
+                let (ok, msg) = match result {
+                    Ok(msg) => (true, msg),
+                    Err(msg) => (false, msg),
+                };
+                let script = format!(
+                    "window.__gooyaFetchDone({}, {})",
+                    ok,
+                    serde_json::to_string(&msg).unwrap_or_else(|_| "\"خطا\"".into())
+                );
+                let _ = webview.evaluate_script(&script);
+            }
             _ => {}
         }
     });
+}
+
+/// Writable per-OS app-data directory where the model is downloaded.
+fn app_data_dir() -> PathBuf {
+    #[cfg(target_os = "windows")]
+    let base = std::env::var("APPDATA")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| std::env::temp_dir());
+    #[cfg(target_os = "macos")]
+    let base = std::env::var("HOME")
+        .map(|h| PathBuf::from(h).join("Library/Application Support/Gooya"))
+        .unwrap_or_else(|_| std::env::temp_dir());
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let base = std::env::var("XDG_DATA_HOME")
+        .map(PathBuf::from)
+        .map(|p| p.join("gooya"))
+        .or_else(|_| {
+            std::env::var("HOME")
+                .map(|h| PathBuf::from(h).join(".local/share/gooya"))
+        })
+        .unwrap_or_else(|_| std::env::temp_dir());
+    base
+}
+
+fn assets_complete(dir: &std::path::Path) -> bool {
+    pipeline::ASSET_FILES
+        .iter()
+        .all(|(_, local)| dir.join(local).is_file())
 }
 
 fn data_dir() -> PathBuf {
     if let Ok(dir) = std::env::var("GOOYA_MODEL_DIR") {
         return PathBuf::from(dir);
     }
-    // Packaged app bundle: <Gooya.app>/Contents/data
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(parent) = exe.parent() {
-            let bundled = parent.join("../data");
-            if bundled.join("tract-bundle-b168").is_dir() {
-                return bundled;
+    let dir = app_data_dir();
+    if assets_complete(&dir) {
+        return dir;
+    }
+    // Dev fallback: checked-in repo data.
+    let dev = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../desktop/data");
+    if assets_complete(&dev) {
+        return dev;
+    }
+    let _ = std::fs::create_dir_all(&dir);
+    dir
+}
+
+fn fetch_models(proxy: &EventLoopProxy<UserEvent>, root: std::path::PathBuf) {
+    use pipeline::ASSET_FILES;
+    const HF: &str = "https://huggingface.co/Reza2kn/gooya-bozorg-v1.5-native/resolve/main";
+    let proxy = proxy.clone();
+    std::thread::spawn(move || {
+        let result = (|| -> Result<String> {
+            for (i, (remote, local)) in ASSET_FILES.iter().enumerate() {
+                let out = root.join(local);
+                if out.is_file() {
+                    let _ = proxy.send_event(UserEvent::FetchProgress {
+                        done: i,
+                        total: ASSET_FILES.len(),
+                        name: local.to_string(),
+                    });
+                    continue;
+                }
+                if let Some(parent) = out.parent() {
+                    std::fs::create_dir_all(parent)?;
+                }
+                let status = Command::new("curl")
+                    .args(["-fsSL", "--retry", "3", "-o"])
+                    .arg(&out)
+                    .arg(format!("{HF}/{remote}"))
+                    .status()?;
+                if !status.success() {
+                    anyhow::bail!("download failed: {local}");
+                }
+                let _ = proxy.send_event(UserEvent::FetchProgress {
+                    done: i + 1,
+                    total: ASSET_FILES.len(),
+                    name: local.to_string(),
+                });
             }
-        }
-    }
-    let crate_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let candidate = crate_dir.join("../desktop/data");
-    if candidate.join("tract-bundle-b168").is_dir() {
-        return candidate;
-    }
-    candidate
+            anyhow::ensure!(assets_complete(&root), "incomplete download");
+            Ok(String::from("model ready"))
+        })();
+        let _ = proxy.send_event(UserEvent::FetchDone(result.map_err(|e| format!("{e:#}"))));
+    });
 }
 
 fn ensure_wav_exists(path: &std::path::Path) -> Result<()> {
@@ -136,6 +223,10 @@ fn create_window(
                 .and_then(|mut clipboard| clipboard.get_text())
                 .map_err(|error| format!("{error}"));
             let _ = proxy.send_event(UserEvent::Paste(result));
+            return;
+        }
+        if body == "fetch" {
+            fetch_models(&proxy, app_data_dir());
             return;
         }
         if body == "replay" {
@@ -202,6 +293,12 @@ fn create_window(
         let vbox = window.default_vbox().unwrap();
         builder.build_gtk(vbox).unwrap()
     };
+    let ready = assets_complete(&root);
+    let root_str = serde_json::to_string(&root.display().to_string()).unwrap_or_else(|_| "\"\"".into());
+    let _ = webview.evaluate_script(&format!(
+        "window.__gooyaInit({}, {})",
+        ready, root_str
+    ));
     (window, webview)
 }
 
@@ -237,6 +334,9 @@ const HTML: &str = r#"
        height:100vh;display:flex;align-items:center;justify-content:center;
        padding:2vh 4vw;}
   .page{width:min(100%,740px);}
+  #dl,#composer{display:none;}
+  .dltitle{font-size:26px;font-weight:800;margin-bottom:10px;}
+  .dlstatus{font-size:15px;color:var(--ink);opacity:.6;margin:12px 0 20px;}
   .word{font-size:64px;font-weight:800;display:inline;vertical-align:middle;line-height:1.1;}
   .tag{font-family:monospace;font-size:13px;color:var(--burgundy);opacity:.72;margin-right:16px;}
   .sub{font-size:17px;color:var(--ink);opacity:.58;margin:10px 0 26px;}
@@ -266,23 +366,53 @@ const HTML: &str = r#"
 <div class="page">
   <div><span class="word">گویا</span><span class="tag">BOZORG · 1.5</span></div>
   <div class="sub">خوانش آفلاین فارسی، روی همین دستگاه</div>
-  <div class="card">
-    <div class="cardhead"><span>متن ورودی</span><span class="count" id="count">۰ نویسه</span></div>
-    <textarea id="t" dir="rtl" autofocus
-      placeholder="مثلاً: امروز هوا چقدر دل‌انگیز است…"
-      oninput="var c=enDigits(document.getElementById('t').value.length);document.getElementById('count').textContent=c+' نویسه';">سلام، حالت چطوره؟</textarea>
+
+  <div id="dl">
+    <div class="card" style="text-align:center;padding:44px 24px;">
+      <div class="dltitle">مدل هنوز دانلود نشده است</div>
+      <div class="dlstatus" id="dlstatus">برای خوانش آفلاین، مدل (حدود ۶۰۰ مگابایت) از Hugging Face دانلود می‌شود. یک‌بار انجام می‌شود.</div>
+      <button id="dlbtn" dir="rtl" onclick="dofetch()" style="font-size:22px;padding:16px;">دانلود مدل</button>
+    </div>
+    <div class="foot">اجرای محلی · بدون ارسال متن به اینترنت</div>
   </div>
-  <div class="status" id="status">متن را وارد کنید</div>
-  <button id="go" dir="rtl" onclick="speak()">بگو</button>
-  <div class="row" id="postrow">
-    <button class="ghost" id="replay" dir="rtl" onclick="window.ipc.postMessage('replay')">دوباره پخش کن</button>
-    <button class="ghost" id="save" dir="rtl" onclick="saveIt()">ذخیره</button>
+
+  <div id="composer">
+    <div class="card">
+      <div class="cardhead"><span>متن ورودی</span><span class="count" id="count">۰ نویسه</span></div>
+      <textarea id="t" dir="rtl" autofocus
+        placeholder="مثلاً: امروز هوا چقدر دل‌انگیز است…"
+        oninput="var c=enDigits(document.getElementById('t').value.length);document.getElementById('count').textContent=c+' نویسه';">سلام، حالت چطوره؟</textarea>
+    </div>
+    <div class="status" id="status">متن را وارد کنید</div>
+    <button id="go" dir="rtl" onclick="speak()">بگو</button>
+    <div class="row" id="postrow">
+      <button class="ghost" id="replay" dir="rtl" onclick="window.ipc.postMessage('replay')">دوباره پخش کن</button>
+      <button class="ghost" id="save" dir="rtl" onclick="saveIt()">ذخیره</button>
+    </div>
+    <div class="foot">اجرای محلی · بدون ارسال متن به اینترنت</div>
   </div>
-  <div class="foot">اجرای محلی · بدون ارسال متن به اینترنت</div>
 </div>
 <script>
   function enDigits(s){return s.replace(/[۰-۹]/g,function(d){return String(d.charCodeAt(0)-0x06F0);});}
   var busy=false, hasAudio=false;
+  function dofetch(){
+    document.getElementById('dlbtn').disabled=true;
+    document.getElementById('dlstatus').textContent='در حال دانلود…';
+    window.ipc.postMessage('fetch');
+  }
+  window.__gooyaInit=function(ready){
+    var dl=document.getElementById('dl'), c=document.getElementById('composer');
+    if(ready){ dl.style.display='none'; c.style.display='block'; var t=document.getElementById('t'); if(t)t.focus(); }
+    else { c.style.display='none'; dl.style.display='block'; }
+  };
+  window.__gooyaFetchProgress=function(done,total,name){
+    document.getElementById('dlstatus').textContent='در حال دانلود '+done+' از '+total+' · '+name;
+  };
+  window.__gooyaFetchDone=function(ok,msg){
+    var st=document.getElementById('dlstatus');
+    if(ok){ st.textContent='آماده شد، در حال راه‌اندازی…'; location.reload(); }
+    else { document.getElementById('dlbtn').disabled=false; st.textContent='خطا: '+msg; }
+  };
   function speak(){
     var t=document.getElementById('t').value.trim();
     if(!t||busy)return;
