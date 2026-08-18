@@ -219,10 +219,27 @@ fn create_window(
         let body = req.body().clone();
         let proxy = proxy.clone();
         if body == "paste" {
-            let result = arboard::Clipboard::new()
-                .and_then(|mut clipboard| clipboard.get_text())
-                .map_err(|error| format!("{error}"));
-            let _ = proxy.send_event(UserEvent::Paste(result));
+            let proxy = proxy.clone();
+            std::thread::spawn(move || {
+                // Clipboard I/O must not run on the GTK main thread: X11/Wayland
+                // selection handshakes need the event loop, so doing it inline
+                // deadlocks the UI. Run it off-thread instead.
+                let result = arboard::Clipboard::new()
+                    .and_then(|mut clipboard| clipboard.get_text())
+                    .map_err(|error| format!("{error}"));
+                let _ = proxy.send_event(UserEvent::Paste(result));
+            });
+            return;
+        }
+        if body.starts_with("copy:") || body.starts_with("cut:") {
+            let (prefix, text) = body.split_once(':').unwrap_or(("", ""));
+            let _ = prefix;
+            let text = text.to_owned();
+            std::thread::spawn(move || {
+                if let Ok(mut clipboard) = arboard::Clipboard::new() {
+                    let _ = clipboard.set_text(text);
+                }
+            });
             return;
         }
         if body == "fetch" {
@@ -458,7 +475,18 @@ const HTML: &str = r#"
       return;
     }
     if(k==='c'||k==='x'){
-      if(isField){document.execCommand(k==='c'?'copy':'cut');}
+      if(isField){
+        var sel=t.value.substring(t.selectionStart,t.selectionEnd);
+        if(sel){
+          if(k==='c'){window.ipc.postMessage('copy:'+sel);}
+          else{
+            window.ipc.postMessage('cut:'+sel);
+            var start=t.selectionStart,end=t.selectionEnd;
+            t.value=t.value.slice(0,start)+t.value.slice(end);
+            var ev=new Event('input',{bubbles:true}); t.dispatchEvent(ev);
+          }
+        }
+      }
       return;
     }
     if(k==='v'){

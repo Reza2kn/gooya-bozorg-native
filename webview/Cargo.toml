@@ -7,7 +7,7 @@ publish = false
 
 [dependencies]
 anyhow = "1.0"
-arboard = "3"
+arboard = { version = "3", features = ["wayland-data-control"] }
 base64 = "0.22"
 rfd = "0.15"
 tao = "0.30"

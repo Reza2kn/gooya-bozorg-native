@@ -136,16 +136,29 @@ run-on word can never overflow the flow bucket.
 
 ## 📊 Performance
 
-Recorded macOS (Apple Silicon, b168 Q4 bundle, canonical prompt) — raw
-synthesis (no UI):
+Canonical test sentence (fixed for all benches): **«سلام، حالت چطوره؟»**
+(17 token IDs incl. trailing `9`; quiet duration ≈ 1.48 s).
+
+Recorded on **Apple Silicon CPU** (b168 Q4 bundle, no UI):
 
 | Path | t3 | flow | vocoder | total |
 | --- | --- | --- | --- | --- |
-| **CPU Q4 (default)** | ~2.1 s | ~8.4 s | ~1.2 s | **~12 s** |
+| **CPU Q4 (macOS default)** | ~2.1 s | ~8.4 s | ~1.2 s | **~12 s** |
 
-GPU (CoreML EP) and FP32 variants were benchmarked and are **slower** on this
-host; full numbers are in [`docs/RUNTIME_MATRIX.md`](docs/RUNTIME_MATRIX.md).
-CUDA/DirectML GPU numbers are pending validation on their target hosts.
+Recorded on **stallion (Ubuntu, RTX 5080 / Blackwell sm_120**, CUDA via
+`scripts/cuda_setup.sh`):
+
+| Path | t3 | flow | vocoder | total |
+| --- | --- | --- | --- | --- |
+| CPU Q4 | ~1.9 s | ~7.6 s | ~2.0 s | ~11.5 s |
+| **CUDA Q4** | **~1.5 s** | **~1.35 s** | **~0.31 s** | **~3.2 s** |
+
+CUDA is **~3.6× faster than CPU** on the RTX 5080 (vocoder ~6.6×, flow ~5.7×).
+T3 emits byte-identical tokens; ASR confirms identical output.
+
+Full GPU matrix (CoreML/CUDA/TensorRT measurements) is in
+[`docs/RUNTIME_MATRIX.md`](docs/RUNTIME_MATRIX.md). DirectML (Windows) numbers
+are pending validation.
 
 ---
 
