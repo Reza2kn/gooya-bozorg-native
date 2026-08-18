@@ -82,28 +82,33 @@ fn ensure_wav_exists(path: &std::path::Path) -> Result<()> {
 
 fn play(path: std::path::PathBuf) {
     #[cfg(target_os = "macos")]
-    let mut command = {
-        let mut c = Command::new("afplay");
-        c.arg(&path);
-        c
-    };
+    {
+        let _ = Command::new("afplay").arg(&path).status();
+    }
     #[cfg(target_os = "linux")]
-    let mut command = {
-        let mut c = Command::new("paplay");
-        c.arg(&path);
-        c
-    };
+    {
+        // PipeWire-first, then PulseAudio, then ALSA.
+        for player in ["pw-play", "paplay", "aplay"] {
+            if let Ok(mut child) = Command::new(player).arg(&path).spawn() {
+                let _ = child.wait();
+                return;
+            }
+        }
+    }
     #[cfg(target_os = "windows")]
-    let mut command = {
-        let mut c = Command::new("powershell");
-        c.args([
-            "-NoProfile",
-            "-Command",
-            &format!("(New-Object Media.SoundPlayer '{}').PlaySync()", path.display()),
-        ]);
-        c
-    };
-    let _ = command.status();
+    {
+        let _ = Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-Command",
+                &format!("(New-Object Media.SoundPlayer '{}').PlaySync()", path.display()),
+            ])
+            .status();
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+    {
+        let _ = path;
+    }
 }
 
 fn create_window(

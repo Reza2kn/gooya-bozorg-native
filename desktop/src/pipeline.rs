@@ -91,7 +91,10 @@ impl Graph {
 impl OrtGraph {
     fn load(path: &Path, threads: usize) -> Result<Self> {
         let _ = ort::init().commit();
-        let device = std::env::var("GOOYA_DEVICE").unwrap_or_else(|_| "cpu".to_owned());
+        // macOS stays on CPU by default (CoreML measured slower than CPU for
+        // this model); Linux/Windows auto-prefer the GPU provider.
+        let default_device = if cfg!(target_os = "macos") { "cpu" } else { "auto" };
+        let device = std::env::var("GOOYA_DEVICE").unwrap_or_else(|_| default_device.to_owned());
         let mut providers = Vec::new();
         if device != "cpu" {
             providers = gpu_providers()?;
