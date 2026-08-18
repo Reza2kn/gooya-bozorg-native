@@ -188,7 +188,7 @@ fn gpu_providers() -> Result<Vec<ort::ep::ExecutionProviderDispatch>> {
             .with_max_workspace_size(1 << 30)
             .with_fp16(true)
             .with_engine_cache(true)
-            .with_engine_cache_path(std::env::temp_dir().join("gooya-trt-cache"))
+            .with_engine_cache_path(std::env::temp_dir().join("gooya-trt-cache").display().to_string())
             .with_detailed_build_log(true);
         providers.push(trt.build().fail_silently());
         let cuda = ort::ep::CUDA::default()
