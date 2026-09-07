@@ -1,0 +1,29 @@
+{
+  "schema": "gooya.koochik.tract-parity/v1",
+  "source": "Reza2kn/Gooya-Koochik-v2.0-exp",
+  "source_revision": "537bb48320fd657415eef5b4fb6796b6cebab195",
+  "selected_weights": "merged continuation-200",
+  "runtime": "tract 0.23.4 Rust; no Python inference fallback",
+  "threshold": 0.98,
+  "comparison": "strictly greater than threshold, per utterance, no aggregate-only pass",
+  "required_gates": [
+    "uncompressed tract vs source implementation validated first",
+    "exact frontend phoneme agreement on the frozen text suite",
+    "final audio codebook token agreement > 0.98 across the full 32-step decode",
+    "waveform cosine > 0.98 with identical output length and no fitted time warp",
+    "finite nonempty audio and duration deviation < 0.02",
+    "actual compressed artifact smaller than the source BF16 speech weights",
+    "successful native app/server consumer-route smoke"
+  ],
+  "diagnostics_not_acceptance": [
+    "logit cosine alone",
+    "graph load alone",
+    "first decode step alone"
+  ],
+  "sampling": "identical reference, source text, step schedule and explicit noise tensors across source and compressed comparison",
+  "promotion": "blocked until all gates pass",
+  "canary": "synthetic graph fixtures establish operator compatibility only; not linguistic quality evidence",
+  "download_size_target_bytes": 500000000,
+  "download_size_note": "Working target after user rejected 1.16 GB. Lossless full-vocabulary bundle is a reference only, not a release candidate.",
+  "metric_clarification": "User asked to clarify speech fidelity versus exact internal-code parity; keep strict existing gate until answered."
+}

@@ -212,6 +212,9 @@ fn create_window(
     let root = data_dir();
     let model_dir = root.join("tract-bundle-b168");
     let tokenizer_path = root.join("grapheme_mtl_merged_expanded_v1.json");
+    let koochik_dir = std::env::var_os("GOOYA_KOOCHIK_MODEL_DIR").map(PathBuf::from).unwrap_or_else(|| root.join("koochik-v2"));
+    let koochik_ready = koochik_dir.join("manifest.json").is_file();
+    let koochik_dir_for_job = koochik_dir.clone();
     let model_dir_for_job = model_dir.clone();
     let tokenizer_for_job = tokenizer_path.clone();
 
@@ -276,15 +279,22 @@ fn create_window(
             });
             return;
         }
-        if !body.starts_with("text:") {
+        let use_koochik = body.starts_with("koochik:");
+        if !use_koochik && !body.starts_with("text:") {
             return;
         }
-        let text = body.trim_start_matches("text:").to_owned();
+        let text = body.split_once(':').map(|(_, t)| t).unwrap_or("").to_owned();
+        let koochik_dir = koochik_dir_for_job.clone();
         let model_dir = model_dir_for_job.clone();
         let tokenizer_path = tokenizer_for_job.clone();
         std::thread::spawn(move || {
             let out = std::env::temp_dir().join("gooya-webview-output.wav");
             let result = (|| -> Result<String> {
+                if use_koochik {
+                    let report = gooya_native_desktop::koochik_bundle::synthesize(&koochik_dir, &out, &text, 43)?;
+                    play(out.clone());
+                    return Ok(format!("{:.2}s · {}", report.duration_seconds, report.wav_path.display()));
+                }
                 let report = pipeline::synthesize_text(&model_dir, &tokenizer_path, &out, &text)?;
                 play(out.clone());
                 Ok(format!(
@@ -316,8 +326,8 @@ fn create_window(
     // GTK/Wayland); macOS/Windows use our Rust-path clipboard.
     let clip = !cfg!(target_os = "linux");
     let _ = webview.evaluate_script(&format!(
-        "window.__gooyaInit({}, {}, {})",
-        ready, clip, root_str
+        "window.__gooyaInit({}, {}, {}); window.__gooyaModels({}, {})",
+        ready || koochik_ready, clip, root_str, ready, koochik_ready
     ));
     (window, webview)
 }
@@ -397,6 +407,11 @@ const HTML: &str = r#"
   </div>
 
   <div id="composer">
+    <label for="model">مدل</label>
+    <select id="model" style="width:100%;padding:12px;margin-bottom:16px;font:inherit;">
+      <option value="text">Gooya Bozorg 1.5</option>
+      <option value="koochik">Gooya Koochik v2.0-exp</option>
+    </select>
     <div class="card">
       <div class="cardhead"><span>متن ورودی</span><span class="count" id="count">۰ نویسه</span></div>
       <textarea id="t" dir="rtl" autofocus
@@ -413,7 +428,7 @@ const HTML: &str = r#"
   </div>
 </div>
 <script>
-  function enDigits(s){return s.replace(/[۰-۹]/g,function(d){return String(d.charCodeAt(0)-0x06F0);});}
+  function enDigits(s){return String(s).replace(/[۰-۹]/g,function(d){return String(d.charCodeAt(0)-0x06F0);});}
   var busy=false, hasAudio=false;
   function dofetch(){
     document.getElementById('dlbtn').disabled=true;
@@ -434,6 +449,11 @@ const HTML: &str = r#"
     if(ok){ st.textContent='آماده شد، در حال راه‌اندازی…'; location.reload(); }
     else { document.getElementById('dlbtn').disabled=false; st.textContent='خطا: '+msg; }
   };
+  window.__gooyaModels=function(bozorg,koochik){
+    var m=document.getElementById('model');
+    m.options[0].disabled=!bozorg; m.options[1].disabled=!koochik;
+    m.value=koochik?'koochik':'text';
+  };
   function speak(){
     var t=document.getElementById('t').value.trim();
     if(!t||busy)return;
@@ -442,7 +462,7 @@ const HTML: &str = r#"
     document.getElementById('postrow').style.display='none';
     var st=document.getElementById('status');
     st.innerHTML='<span class="spin"></span> در حال ساخت صدا…';
-    window.ipc.postMessage('text:'+t);
+    window.ipc.postMessage(document.getElementById('model').value+':'+t);
   }
   function saveIt(){busy=false;window.ipc.postMessage('save');}
   window.__gooyaResult=function(ok,msg){

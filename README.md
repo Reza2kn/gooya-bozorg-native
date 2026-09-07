@@ -179,3 +179,6 @@ This project is non-commercial research/creative code. 🎨
 - **Model (source):** [Reza2kn/Gooya-Bozorg-v1.5](https://huggingface.co/Reza2kn/Gooya-Bozorg-v1.5) — the full-precision original
 - ONNX Runtime / tract / egui / wry — the runtimes
 - You, for reading this far 💛
+## Gooya Koochik v2.0-exp
+
+A separate tract-only Koochik engine and model picker are available on the development branch. See [native Koochik setup and parity contract](docs/koochik/README.md). The INT8 candidate failed the fidelity gate; the 1.16 GB lossless reference was rejected for download size. A smaller vocabulary and native 4-bit candidate are being evaluated.

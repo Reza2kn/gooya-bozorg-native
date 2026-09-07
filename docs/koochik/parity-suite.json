@@ -1,0 +1,68 @@
+{
+  "source_revision": "537bb48320fd657415eef5b4fb6796b6cebab195",
+  "seed": 43,
+  "texts": [
+    {
+      "id": "case-00",
+      "text": "سلام، حالت چطوره؟",
+      "sha256": "5657ba03bdd9e57407c436740b986906a28fa837357653ce0bebe8c0a873ee48"
+    },
+    {
+      "id": "case-01",
+      "text": "قرار بود امروز بیای، چرا نیومدی؟",
+      "sha256": "10d147ee41bccad384b5afd5d0bd25f237d8f14df0a9e08a1847e7e4412f6b02"
+    },
+    {
+      "id": "case-02",
+      "text": "امروز هوا خیلی خوبه.",
+      "sha256": "9315d278484284ff2ae5572b6bda4b54f9cfb2517c32f19640078d425fcb4452"
+    },
+    {
+      "id": "case-03",
+      "text": "واقعاً مطمئنی که فردا می‌رسی؟",
+      "sha256": "ae859478569d82340a9dead326857dfe33a5b501019c28ec440c8f4562828cf3"
+    },
+    {
+      "id": "case-04",
+      "text": "چه خبر خوبی، بالاخره تموم شد!",
+      "sha256": "e127116e0ac3a6f9313ee6548feca2f3ad26e2dacdf41551b8023e05ddae9a32"
+    },
+    {
+      "id": "case-05",
+      "text": "ببخشید، می‌شه دوباره توضیح بدید؟",
+      "sha256": "0165fa7f7a3a6596b5eb122b1f9d754751f1d38955df8c1d14fe97d64767877b"
+    },
+    {
+      "id": "case-06",
+      "text": "جلسه ساعت سه شروع می‌شه.",
+      "sha256": "1ddefba02ccc1cdd81a26a198192c1805908d7bb78ec74cb1d8b65f13519d419"
+    },
+    {
+      "id": "case-07",
+      "text": "قیمت این کتاب صد و بیست هزار تومنه.",
+      "sha256": "8ec84a3119d33d07c60c260f9422e1e09925b07487646270997a2dcfe65eefc1"
+    },
+    {
+      "id": "case-08",
+      "text": "سارا و آرش امروز به شیراز رفتن.",
+      "sha256": "bab047329bb30fd6e3dfd21c9a5c1565fce930f388fcd9c2944fef0786916d01"
+    },
+    {
+      "id": "case-09",
+      "text": "نه، من اینو نگفتم.",
+      "sha256": "9b4493a1913361d99923191fbf5c9d33177595742b5d9ea5b694ec551c20034a"
+    },
+    {
+      "id": "case-10",
+      "text": "اول فایل رو ذخیره کن، بعد پنجره رو ببند.",
+      "sha256": "cc7a2de27d24644921005bb8cd0a1d7230305db9370a8989926ec21a8f9f2e70"
+    },
+    {
+      "id": "case-11",
+      "text": "برای شروع آماده‌ای؟",
+      "sha256": "04267a5f55f045babfefaeb249ef1f675324d0c5f010f885925768a53aff8b7d"
+    }
+  ],
+  "scope": "finite development parity suite, not a statistical guarantee on unseen text",
+  "calibration": "no quantization calibration on this suite"
+}

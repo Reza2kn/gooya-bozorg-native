@@ -1,0 +1,12 @@
+{
+  "source_revision": "537bb48320fd657415eef5b4fb6796b6cebab195",
+  "promotion": false,
+  "candidates": [
+    {"method": "W8 per row, FP32 dequantization", "speech_weight_bytes": 614822512, "first_real_step_argmax_agreement": 0.9325, "status": "failed strict numerical screen"},
+    {"method": "W8 group 32, FP32 dequantization", "speech_weight_bytes": 689341104, "full_32_step_code_agreement_case_00": 0.39215686274509803, "status": "failed strict code gate; not a perceptual quality score"},
+    {"method": "lossless zstd, FP32 runtime", "bundle_bytes": 1159913123, "status": "user rejected download size; local reference only"},
+    {"method": "native tract Q4_0 plus compact text vocabulary", "status": "under evaluation", "initial_conversion_failure": "BlockQuantTransform assumed constant matrix in input slot zero; normalize operands and axis mappings before conversion"}
+  ],
+  "download_target_bytes": 500000000,
+  "metric_clarification_pending": "speech fidelity versus exact internal audio-code agreement"
+}

@@ -1,0 +1,10 @@
+The OmniVoice inference schedule, conditioning, duration estimate and audio
+postprocessing were adapted from k2-fsa/OmniVoice, commit
+08be0b4ccbac3e13e374e86fbfead4b4cac343e2.
+Copyright 2026 Xiaomi Corp. (authors: Han Zhu).
+Licensed under Apache License 2.0; see OMNIVOICE-LICENSE.
+
+The Gooya Koochik model is a private experimental Persian derivative. The
+native artifact preserves its source repository and revision in manifest.json.
+This integration does not change the repository's existing license or claim
+new rights over source training data, voices, or upstream model components.
