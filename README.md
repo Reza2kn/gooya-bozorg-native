@@ -181,4 +181,4 @@ This project is non-commercial research/creative code. 🎨
 - You, for reading this far 💛
 ## Gooya Koochik v2.0-exp
 
-A separate tract-only Koochik engine and model picker are available on the development branch. See [native Koochik setup and parity contract](docs/koochik/README.md). Acceptance uses paired Shenava transcription parity above 98%, not internal codec-token equality. The 391 MB Q4 candidate failed at 91.04%; smaller-download quality and latency work is ongoing. No compact model has been promoted yet.
+The Koochik engine accepts raw Persian and uses native tract Metal on Apple Silicon, with CPU frontend and codec. The selected **504 MB** bundle passed the twelve-clip Shenava transcription gate at **98.507%**. App progress and cached plans are implemented; measured greeting latency on M2 is 31.2 seconds cold and 22.4 seconds cached. Private HF publication and fresh-download verification are pending destination approval. See [setup, evidence and limitations](docs/koochik/README.md).

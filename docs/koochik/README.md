@@ -2,7 +2,9 @@
 
 The integration accepts raw Persian text, runs Negara v7.1, generates audio codes with OmniVoice, and decodes them to 24 kHz WAV. Apple Silicon uses tract Metal by default; other platforms use tract CPU. Koochik does not use ONNX Runtime or Python for inference.
 
-**Release validation is in progress.** The current candidate is 503,670,910 bytes: grouped 6-bit transformer weights, unchanged text/audio embeddings and output heads, and FP32 arithmetic. Earlier candidates and their failures are retained in `quantization-status.json`. Nothing is promoted until the full Shenava gate and the actual native consumer checks pass.
+**Native validation passed; private publication is pending destination approval.** The selected bundle is 503,670,910 bytes: grouped 6-bit transformer weights, unchanged text/audio embeddings and output heads, FP32 arithmetic, and 24 passes. The complete native Metal suite achieved **98.507% Shenava parity** (one word difference in 67 words across twelve clips). Earlier failures remain in `quantization-status.json`.
+
+The actual app generated the correct greeting in 31.3 seconds cold. A separate repeated-request check measured **31.2 seconds cold and 22.4 seconds cached** for 2.03 seconds of audio on Apple M2 with 24 GiB RAM; the cached plan produced byte-identical WAV output. This remains slower than real time. Peak process RSS was 7.95 GB during the two-request check; that is not a separate VRAM measurement. See `consumer-repeat.json` and `consumer-app-cold.json`. Fresh private-repository download verification remains pending publication.
 
 ## Load and test
 

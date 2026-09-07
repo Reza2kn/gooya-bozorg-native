@@ -1,0 +1,41 @@
+{
+  "cache_reused": true,
+  "cold": {
+    "backend": "tract-metal",
+    "duration_seconds": 2.03,
+    "generation_seconds": 17.79968525,
+    "loaded_speech_graph": true,
+    "model": "Gooya Koochik v2.0-exp",
+    "phrases": [
+      "s a l A m , / h A l e t / C e t o r e h ?"
+    ],
+    "samples": 48720,
+    "wall_seconds": 31.204039625,
+    "wav_path": "artifacts/gooya-koochik-tract/consumer-repeat/cold.wav"
+  },
+  "identical_wav": true,
+  "warm": {
+    "backend": "tract-metal",
+    "duration_seconds": 2.03,
+    "generation_seconds": 21.820218667,
+    "loaded_speech_graph": false,
+    "model": "Gooya Koochik v2.0-exp",
+    "phrases": [
+      "s a l A m , / h A l e t / C e t o r e h ?"
+    ],
+    "samples": 48720,
+    "wall_seconds": 22.443809166,
+    "wav_path": "artifacts/gooya-koochik-tract/consumer-repeat/warm.wav"
+  },
+  "shenava": {
+    "text": "سلام حالت چطوره؟",
+    "greedy": "سلام حالت چطوره؟",
+    "elapsed_ms": 783,
+    "backend": "gpu-or-cpu",
+    "decoder": "greedy",
+    "version": "0.1.1",
+    "decoder_revision": "sentencepiece-v2"
+  },
+  "maximum_resident_set_bytes": 7945912320,
+  "hardware": "Apple M2, 24 GiB unified memory"
+}

@@ -60,36 +60,36 @@
         "results": [
           {
             "id": "case-00-q4",
-            "requested_text": "سلام، حالت چطوره؟",
+            "requested_text": "\u0633\u0644\u0627\u0645\u060c \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647\u061f",
             "endpoint": "http://127.0.0.1:13011/transcribe",
             "source": {
               "audio_sha256": "c29460ef37404361cda71fe354bd23b8142560a280458b68dc7255b5e64e5ac7",
               "response": {
-                "text": "سلام حالت چطوره؟",
-                "greedy": "سلام حالت چطوره؟",
+                "text": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647\u061f",
+                "greedy": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647\u061f",
                 "elapsed_ms": 2390,
                 "backend": "gpu-or-cpu",
                 "decoder": "greedy",
                 "version": "0.1.1",
                 "decoder_revision": "sentencepiece-v2"
               },
-              "raw_transcript": "سلام حالت چطوره؟",
-              "normalized_transcript": "سلام حالت چطوره",
+              "raw_transcript": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647\u061f",
+              "normalized_transcript": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647",
               "elapsed_seconds": 2.4508765421342105
             },
             "candidate": {
               "audio_sha256": "4d36e94e43c43b9f98aaf5f97aba030c742a51a95f16b56976840d702befdcc6",
               "response": {
-                "text": "سلام حالت چطوره؟",
-                "greedy": "سلام حالت چطوره؟",
+                "text": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647\u061f",
+                "greedy": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647\u061f",
                 "elapsed_ms": 738,
                 "backend": "gpu-or-cpu",
                 "decoder": "greedy",
                 "version": "0.1.1",
                 "decoder_revision": "sentencepiece-v2"
               },
-              "raw_transcript": "سلام حالت چطوره؟",
-              "normalized_transcript": "سلام حالت چطوره",
+              "raw_transcript": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647\u061f",
+              "normalized_transcript": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647",
               "elapsed_seconds": 0.7640577920246869
             },
             "word_errors": 0,
@@ -147,12 +147,13 @@
     {
       "method": "W6 group32, exact input/output weights, FP32 tract Metal, 24 passes",
       "bundle_bytes": 503670910,
-      "status": "full Shenava gate passed; consumer verification in progress",
+      "status": "full Shenava gate and actual native consumer passed; publication pending destination approval",
       "word_parity": 0.9850746268656716,
       "word_errors": 1,
       "word_total": 67
     }
   ],
   "download_target_bytes": 500000000,
-  "acceptance_metric": "Shenava transcription parity, as clarified by user"
+  "acceptance_metric": "Shenava transcription parity, as clarified by user",
+  "publication_status": "blocked by automatic approval review for new HF destination"
 }
