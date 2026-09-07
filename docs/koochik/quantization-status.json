@@ -2,10 +2,52 @@
   "source_revision": "537bb48320fd657415eef5b4fb6796b6cebab195",
   "promotion": false,
   "candidates": [
-    {"method": "W8 per row, FP32 dequantization", "speech_weight_bytes": 614822512, "first_real_step_argmax_agreement": 0.9325, "status": "failed strict numerical screen"},
-    {"method": "W8 group 32, FP32 dequantization", "speech_weight_bytes": 689341104, "full_32_step_code_agreement_case_00": 0.39215686274509803, "status": "failed strict code gate; not a perceptual quality score"},
-    {"method": "lossless zstd, FP32 runtime", "bundle_bytes": 1159913123, "status": "user rejected download size; local reference only"},
-    {"method": "native tract Q4_0 plus compact text vocabulary", "status": "under evaluation", "initial_conversion_failure": "BlockQuantTransform assumed constant matrix in input slot zero; normalize operands and axis mappings before conversion"}
+    {
+      "method": "W8 per row, FP32 dequantization",
+      "speech_weight_bytes": 614822512,
+      "first_real_step_argmax_agreement": 0.9325,
+      "status": "failed strict numerical screen"
+    },
+    {
+      "method": "W8 group 32, FP32 dequantization",
+      "speech_weight_bytes": 689341104,
+      "full_32_step_code_agreement_case_00": 0.39215686274509803,
+      "status": "failed strict code gate; not a perceptual quality score"
+    },
+    {
+      "method": "lossless zstd, FP32 runtime",
+      "bundle_bytes": 1159913123,
+      "status": "user rejected download size; local reference only"
+    },
+    {
+      "method": "native tract Q4_0 plus compact text vocabulary",
+      "status": "failed strict code gate; speech fidelity not evaluated",
+      "initial_conversion_failure": "BlockQuantTransform assumed constant matrix in input slot zero; normalize operands and axis mappings before conversion",
+      "size": {
+        "speech_q4_nnef_bytes": 301326336,
+        "speech_archive_bytes": 259107996,
+        "other_components_bytes": 131942849,
+        "projected_complete_download_bytes": 391071418,
+        "note": "Concrete-shape canary model; not yet a general-input release. All frontend/codec components remain FP32."
+      },
+      "full_generation": {
+        "code_agreement": 0.10784313725490197,
+        "passes_strict_code_gate": false,
+        "promotion": false
+      },
+      "first_step": {
+        "target_logit_cosine": 0.999907259496101,
+        "target_argmax_agreement": 0.21200980392156862,
+        "max_abs": 7.460371971130371
+      },
+      "vocabulary_pruning": {
+        "cosine": 0.9999999999997764,
+        "argmax_agreement": 1.0,
+        "max_abs": 0.00038909912109375,
+        "retained_rows": 3190
+      },
+      "performance_note": "First native Q4 path logged roughly 9-11 seconds per step on the local Mac, slower than FP32; not a controlled performance benchmark"
+    }
   ],
   "download_target_bytes": 500000000,
   "metric_clarification_pending": "speech fidelity versus exact internal audio-code agreement"

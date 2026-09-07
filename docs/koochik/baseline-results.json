@@ -1,0 +1,219 @@
+{
+  "source": "Reza2kn/Gooya-Koochik-v2.0-exp",
+  "source_revision": "537bb48320fd657415eef5b4fb6796b6cebab195",
+  "source_runtime": "PyTorch 2.11.0 FP32 CPU",
+  "native_runtime": "tract 0.23.4 FP32 CPU",
+  "cases": [
+    {
+      "id": "case-00",
+      "text": "سلام، حالت چطوره؟",
+      "target_tokens": 51,
+      "code_agreement": 1.0,
+      "waveform": {
+        "cosine": 0.999999993298073,
+        "same_length": true,
+        "source_samples": 48960,
+        "native_samples": 48960,
+        "finite": true,
+        "passes": true
+      },
+      "frontend_exact": true
+    },
+    {
+      "id": "case-01",
+      "text": "قرار بود امروز بیای، چرا نیومدی؟",
+      "target_tokens": 70,
+      "code_agreement": 1.0,
+      "waveform": {
+        "cosine": 0.9999999956335797,
+        "same_length": true,
+        "source_samples": 67200,
+        "native_samples": 67200,
+        "finite": true,
+        "passes": true
+      },
+      "frontend_exact": true
+    },
+    {
+      "id": "case-02",
+      "text": "امروز هوا خیلی خوبه.",
+      "target_tokens": 52,
+      "code_agreement": 1.0,
+      "waveform": {
+        "cosine": 0.9999999955122635,
+        "same_length": true,
+        "source_samples": 49920,
+        "native_samples": 49920,
+        "finite": true,
+        "passes": true
+      },
+      "frontend_exact": true
+    },
+    {
+      "id": "case-03",
+      "text": "واقعاً مطمئنی که فردا می‌رسی؟",
+      "target_tokens": 61,
+      "code_agreement": 1.0,
+      "waveform": {
+        "cosine": 0.9999999954945017,
+        "same_length": true,
+        "source_samples": 58560,
+        "native_samples": 58560,
+        "finite": true,
+        "passes": true
+      },
+      "frontend_exact": true
+    },
+    {
+      "id": "case-04",
+      "text": "چه خبر خوبی، بالاخره تموم شد!",
+      "target_tokens": 66,
+      "code_agreement": 1.0,
+      "waveform": {
+        "cosine": 0.9999999933006509,
+        "same_length": true,
+        "source_samples": 63360,
+        "native_samples": 63360,
+        "finite": true,
+        "passes": true
+      },
+      "frontend_exact": true
+    },
+    {
+      "id": "case-05",
+      "text": "ببخشید، می‌شه دوباره توضیح بدید؟",
+      "target_tokens": 65,
+      "code_agreement": 1.0,
+      "waveform": {
+        "cosine": 0.9999999958348768,
+        "same_length": true,
+        "source_samples": 62400,
+        "native_samples": 62400,
+        "finite": true,
+        "passes": true
+      },
+      "frontend_exact": true
+    },
+    {
+      "id": "case-06",
+      "text": "جلسه ساعت سه شروع می‌شه.",
+      "target_tokens": 55,
+      "code_agreement": 1.0,
+      "waveform": {
+        "cosine": 0.9999999964950933,
+        "same_length": true,
+        "source_samples": 52800,
+        "native_samples": 52800,
+        "finite": true,
+        "passes": true
+      },
+      "frontend_exact": true
+    },
+    {
+      "id": "case-07",
+      "text": "قیمت این کتاب صد و بیست هزار تومنه.",
+      "target_tokens": 77,
+      "code_agreement": 1.0,
+      "waveform": {
+        "cosine": 0.9999999953544993,
+        "same_length": true,
+        "source_samples": 73920,
+        "native_samples": 73920,
+        "finite": true,
+        "passes": true
+      },
+      "frontend_exact": true
+    },
+    {
+      "id": "case-08",
+      "text": "سارا و آرش امروز به شیراز رفتن.",
+      "target_tokens": 66,
+      "code_agreement": 1.0,
+      "waveform": {
+        "cosine": 0.9999999969113734,
+        "same_length": true,
+        "source_samples": 63360,
+        "native_samples": 63360,
+        "finite": true,
+        "passes": true
+      },
+      "frontend_exact": true
+    },
+    {
+      "id": "case-09",
+      "text": "نه، من اینو نگفتم.",
+      "target_tokens": 51,
+      "code_agreement": 1.0,
+      "waveform": {
+        "cosine": 0.999999993639949,
+        "same_length": true,
+        "source_samples": 48960,
+        "native_samples": 48960,
+        "finite": true,
+        "passes": true
+      },
+      "frontend_exact": true
+    },
+    {
+      "id": "case-10",
+      "text": "اول فایل رو ذخیره کن، بعد پنجره رو ببند.",
+      "target_tokens": 92,
+      "code_agreement": 1.0,
+      "waveform": {
+        "cosine": 0.9999999949781587,
+        "same_length": true,
+        "source_samples": 88320,
+        "native_samples": 88320,
+        "finite": true,
+        "passes": true
+      },
+      "frontend_exact": true
+    },
+    {
+      "id": "case-11",
+      "text": "برای شروع آماده‌ای؟",
+      "target_tokens": 50,
+      "code_agreement": 1.0,
+      "waveform": {
+        "cosine": 0.9999999963228319,
+        "same_length": true,
+        "source_samples": 48000,
+        "native_samples": 48000,
+        "finite": true,
+        "passes": true
+      },
+      "frontend_exact": true
+    }
+  ],
+  "all_12_baseline_cases_pass": true,
+  "expanded_weights": {
+    "path": "step.weights",
+    "bytes": 2450309184,
+    "sha256": "28b52f18c01451e8382d9f5e39559617443f802ebf9f4454c9771d37a964f7dc"
+  },
+  "fresh_lossless_roundtrip_case_00": {
+    "raw": {
+      "same_length": true,
+      "cosine": 0.999999993298073,
+      "source_samples": 48960,
+      "native_samples": 48960,
+      "passes": true
+    },
+    "processed": {
+      "same_length": true,
+      "cosine": 0.9999999614766882,
+      "source_samples": 48480,
+      "native_samples": 48480,
+      "passes": true
+    }
+  },
+  "consumer_smoke": {
+    "route": "gooya_koochik CLI calls shared desktop engine with raw Persian text",
+    "text": "سلام، حالت چطوره؟",
+    "samples": 48720,
+    "sample_rate": 24000,
+    "seed": "SplitMix64 43; not a PyTorch seed equivalence claim"
+  },
+  "release_accepted": false,
+  "reason": "User rejected 1.16 GB download; Q4 compact-vocabulary candidate pending"
+}

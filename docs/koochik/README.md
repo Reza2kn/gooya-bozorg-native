@@ -63,3 +63,9 @@ The exporter requires the pinned original OmniVoice implementation
 `k2-fsa/OmniVoice` commit `08be0b4ccbac3e13e374e86fbfead4b4cac343e2`,
 PyTorch 2.11.0, Transformers 5.16.1, ONNX and NumPy. These are development tools;
 users of the Rust application do not need them.
+
+## Recorded results
+
+See [baseline-results.json](baseline-results.json): all twelve source/tract FP32 generations matched every final audio code, and raw waveform cosine exceeded 0.99999999 on every case. The fresh lossless roundtrip also matched the processed source waveform above 0.99999996 with identical length. The desktop shared engine produced a WAV from raw Persian text, and the UI passed cargo check.
+
+The user rejected the 1.16 GB download. The compact-vocabulary native Q4 canary is 301,326,336 bytes (259,107,996 compressed), projecting a 391,071,418-byte complete download. However, its full-generation code agreement was only 10.7843%, so it is not promoted. This is an exact internal-code score, not an audible-quality percentage. The canary has a concrete input shape; it is not yet a general-input release. The native Q4 path was also slower than FP32 in the observed runs.
