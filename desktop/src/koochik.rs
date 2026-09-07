@@ -33,11 +33,64 @@ pub fn read_inputs(path: &Path) -> Result<Vec<Tensor>> {
 pub struct Graph {
     plan: std::sync::Arc<TypedRunnableModel>,
 }
+fn optimize_step(mut model: TypedModel, allow_fp16: bool) -> Result<TypedModel> {
+    if allow_fp16 && std::env::var_os("GOOYA_EXPERIMENTAL_FP16_LINEAR").is_some() {
+        // Cast only constant-weight matrix products. Keep graph boundaries,
+        // attention scores, normalization and softmax in FP32.
+        for id in model.eval_order()? {
+            let node = model.node(id);
+            if let Some(op) = node.op_as::<tract_core::ops::einsum::EinSum>() {
+                if op.operating_dt != DatumType::F32
+                    || !node
+                        .inputs
+                        .iter()
+                        .any(|i| model.outlet_fact(*i).is_ok_and(|f| f.konst.is_some()))
+                {
+                    continue;
+                }
+                let mut patch = TypedModelPatch::default();
+                let mut inputs = tvec![];
+                for (ix, input) in node.inputs.iter().enumerate() {
+                    let tap = patch.tap_model(&model, *input)?;
+                    inputs.push(
+                        patch.wire_node(
+                            format!("{}.fp16-in-{ix}", node.name),
+                            tract_core::ops::cast::cast(DatumType::F16),
+                            &[tap],
+                        )?[0],
+                    );
+                }
+                let mut op = op.clone();
+                op.operating_dt = DatumType::F16;
+                let product = patch.wire_node(format!("{}.fp16", node.name), op, &inputs)?;
+                let output = patch.wire_node(
+                    format!("{}.fp32-out", node.name),
+                    tract_core::ops::cast::cast(DatumType::F32),
+                    &product,
+                )?;
+                patch.shunt_outside(&model, node.id.into(), output[0])?;
+                patch.apply(&mut model)?;
+            }
+        }
+    }
+    #[cfg(target_os = "macos")]
+    if allow_fp16 && std::env::var("GOOYA_KOOCHIK_DEVICE").as_deref() == Ok("metal") {
+        use tract_core::transform::ModelTransform;
+        tract_metal::MetalTransform::default().transform(&mut model)?;
+        let count = model.nodes().iter().filter(|n| n.op.name().starts_with("Metal")).count();
+        ensure!(count > 0, "Metal requested but no Metal operators were created");
+        eprintln!("Koochik backend: tract-metal, {count} Metal operators; FP32 arithmetic");
+    }
+    Ok(model.into_optimized()?)
+}
 impl Graph {
     pub fn from_plan(plan: std::sync::Arc<TypedRunnableModel>) -> Self {
         Self { plan }
     }
     pub fn load(path: &Path, inputs: &[Tensor]) -> Result<Self> {
+        if path.to_string_lossy().ends_with(".nnef.tar") {
+            return Self::load_nnef_shaped(path, true, inputs);
+        }
         let mut m = tract_onnx::onnx()
             .model_for_path(path)
             .with_context(|| format!("load {}", path.display()))?;
@@ -45,11 +98,114 @@ impl Graph {
             m.set_input_fact(i, InferenceFact::dt_shape(t.datum_type(), t.shape()))?;
         }
         let options = tract_core::runtime::RunOptions {
-            executor: Some(tract_linalg::multithread::Executor::multithread(6)),
+            skip_order_opt_ram: std::env::var("GOOYA_KOOCHIK_DEVICE").as_deref() == Ok("metal"),
+            executor: Some(tract_linalg::multithread::Executor::multithread(
+                std::env::var("GOOYA_KOOCHIK_THREADS")
+                    .ok()
+                    .and_then(|s| s.parse::<usize>().ok())
+                    .unwrap_or(6)
+                    .clamp(1, 8),
+            )),
             ..Default::default()
         };
         Ok(Self {
-            plan: m.into_optimized()?.into_runnable_with_options(&options)?,
+            plan: optimize_step(
+                m.into_typed()?.into_decluttered()?,
+                path.file_name().is_some_and(|n| n == "step.onnx"),
+            )?
+            .into_runnable_with_options(&options)?,
+        })
+    }
+    /// Q4 is the download format. Unpacking uses faster dense CPU matrix kernels
+    /// for OmniVoice's whole-sequence diffusion, at the cost of runtime RAM.
+    pub fn load_nnef(path: &Path, unpack: bool) -> Result<Self> {
+        Self::load_nnef_shaped(path, unpack, &[])
+    }
+    pub fn load_nnef_shaped(path: &Path, unpack: bool, inputs: &[Tensor]) -> Result<Self> {
+        let start = Instant::now();
+        let mut m = tract_nnef::nnef().model_for_path(path)?;
+        if !inputs.is_empty() {
+            let mut symbols = std::collections::HashMap::new();
+            for (i, input) in inputs.iter().enumerate() {
+                let fact = m.input_fact(i)?;
+                ensure!(fact.shape.len() == input.rank(), "input rank mismatch");
+                for (dim, &actual) in fact.shape.iter().zip(input.shape()) {
+                    if let TDim::Sym(symbol) = dim {
+                        if let Some(old) = symbols.insert(symbol.clone(), actual.to_dim()) {
+                            ensure!(old == actual.to_dim(), "inconsistent input dimensions");
+                        }
+                    }
+                }
+            }
+            m = m.set_symbols(&symbols)?;
+            for (i, input) in inputs.iter().enumerate() {
+                ensure!(
+                    m.input_fact(i)?.shape.as_concrete() == Some(input.shape()),
+                    "unresolved input shape"
+                );
+            }
+        }
+        if unpack {
+            for id in m.eval_order()? {
+                let node = m.node(id);
+                if let Some(op) = node.op_as::<tract_core::ops::konst::Const>() {
+                    if let Ok(storage) = op
+                        .val()
+                        .try_storage_as::<tract_linalg::block_quant::BlockQuantStorage>()
+                    {
+                        let tensor = storage
+                            .format()
+                            .dequant_f32(storage.value())?
+                            .into_shape(op.val().shape())?;
+                        let op = tract_core::ops::konst::Const::new(std::sync::Arc::new(tensor))?;
+                        TypedModelPatch::replace_single_op(&m, node, &[], op)?.apply(&mut m)?;
+                    }
+                }
+            }
+        }
+        let options = tract_core::runtime::RunOptions {
+            skip_order_opt_ram: std::env::var("GOOYA_KOOCHIK_DEVICE").as_deref() == Ok("metal"),
+            executor: Some(tract_linalg::multithread::Executor::multithread(
+                std::env::var("GOOYA_KOOCHIK_THREADS")
+                    .ok()
+                    .and_then(|s| s.parse::<usize>().ok())
+                    .unwrap_or(6)
+                    .clamp(1, 8),
+            )),
+            ..Default::default()
+        };
+        Ok(Self {
+            plan: {
+                let plan = optimize_step(m.into_decluttered()?, true)?
+                    .into_runnable_with_options(&options)?;
+                eprintln!(
+                    "Koochik graph preparation: {:.2}s",
+                    start.elapsed().as_secs_f32()
+                );
+                plan
+            },
+        })
+    }
+    pub fn load_g2p_decoder(path: &Path, source: usize) -> Result<Self> {
+        let mut m = tract_onnx::onnx().model_for_path(path)?;
+        let target = m.symbols.sym("target");
+        m.set_input_fact(
+            0,
+            InferenceFact::dt_shape(DatumType::I64, tvec![5.to_dim(), target.to_dim()]),
+        )?;
+        m.set_input_fact(1, InferenceFact::dt_shape(DatumType::F32, [5, source, 512]))?;
+        m.set_input_fact(2, InferenceFact::dt_shape(DatumType::I64, [5, source]))?;
+        let mut model = m.into_typed()?;
+        // tract 0.23.4 FoldUniformMask incorrectly removes the broadcast beam
+        // dimension from this decoder's dynamic causal mask (5 -> 1).
+        let mut declutter = tract_core::optim::Optimizer::declutter();
+        declutter
+            .passes
+            .retain(|pass| !format!("{pass:?}").starts_with("FoldUniformMask"));
+        declutter.optimize(&mut model)?;
+        model.optimize()?;
+        Ok(Self {
+            plan: model.into_runnable()?,
         })
     }
     pub fn load_dynamic(path: &Path) -> Result<Self> {
@@ -58,13 +214,21 @@ impl Graph {
             plan: m.into_optimized()?.into_runnable()?,
         })
     }
+    pub fn backend(&self) -> &'static str {
+        if self.plan.model().nodes().iter().any(|n| n.op.name().starts_with("Metal")) { "tract-metal" } else { "tract-cpu" }
+    }
     pub fn run(&self, inputs: &[Tensor]) -> Result<TVec<TValue>> {
         self.plan
             .run(inputs.iter().cloned().map(|x| x.into_tvalue()).collect())
     }
 }
+pub fn default_steps() -> usize {
+    32
+}
 #[derive(Deserialize)]
 pub struct DecodeFixture {
+    #[serde(default = "default_steps")]
+    pub num_steps: usize,
     pub target_tokens: usize,
     pub noise: Vec<Vec<f32>>,
     pub source_codes: Vec<i64>,
@@ -74,15 +238,33 @@ pub fn log_normalizer(x: &[f32]) -> f32 {
     max + x.iter().map(|v| (*v - max).exp()).sum::<f32>().ln()
 }
 /// Uses the source implementation's explicit per-step position noise for reproducible comparisons.
-pub fn decode(graph: &Graph, mut inputs: Vec<Tensor>, fixture: &DecodeFixture) -> Result<Vec<i64>> {
+pub fn decode(graph: &Graph, inputs: Vec<Tensor>, fixture: &DecodeFixture) -> Result<Vec<i64>> {
+    decode_with_progress(graph, inputs, fixture, &mut |_, _| {})
+}
+pub fn decode_with_progress(
+    graph: &Graph,
+    mut inputs: Vec<Tensor>,
+    fixture: &DecodeFixture,
+    progress: &mut dyn FnMut(usize, usize),
+) -> Result<Vec<i64>> {
     let t = fixture.target_tokens;
     let s = inputs[0].shape()[2];
     ensure!(t > 0 && t <= s, "invalid target length");
     ensure!(fixture.noise.len() == 32, "expected 32 noise steps");
+    let steps = std::env::var("GOOYA_EXPERIMENTAL_STEPS")
+        .ok()
+        .map(|v| v.parse::<usize>())
+        .transpose()?
+        .unwrap_or(fixture.num_steps);
+    ensure!(
+        [8, 16, 24, 32].contains(&steps),
+        "supported step counts: 8, 16, 24, 32"
+    );
     let n = 8 * t;
     let mut tokens = vec![1024i64; n];
     let mut remaining = n;
-    for step in 0..32 {
+    for step in 0..steps {
+        progress(step, steps);
         let start = Instant::now();
         let outputs = graph.run(&inputs)?;
         let raw = outputs[0].to_plain_array_view::<f32>()?;
@@ -125,10 +307,10 @@ pub fn decode(graph: &Graph, mut inputs: Vec<Tensor>, fixture: &DecodeFixture) -
             }
         }
         let timestep = |i: usize| {
-            let x = i as f32 / 32.;
+            let x = i as f32 / steps as f32;
             0.1 * x / (1. + (0.1 - 1.) * x)
         };
-        let k = if step == 31 {
+        let k = if step == steps - 1 {
             remaining
         } else {
             ((n as f64 * (timestep(step + 1) as f64 - timestep(step) as f64)).ceil() as usize)
@@ -153,11 +335,12 @@ pub fn decode(graph: &Graph, mut inputs: Vec<Tensor>, fixture: &DecodeFixture) -
             }
         }
         eprintln!(
-            "Koochik step {}/32 ({:.2}s)",
+            "Koochik step {}/{steps} ({:.2}s)",
             step + 1,
             start.elapsed().as_secs_f32()
         );
     }
+    progress(steps, steps);
     ensure!(
         remaining == 0 && !tokens.contains(&1024),
         "incomplete diffusion output"

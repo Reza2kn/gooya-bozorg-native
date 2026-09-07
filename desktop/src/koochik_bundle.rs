@@ -16,8 +16,13 @@ use tract_onnx::prelude::*;
 #[derive(Deserialize)]
 pub struct Manifest {
     pub source_revision: String,
+    #[serde(default = "koochik::default_steps")]
+    pub inference_steps: usize,
     pub files: Vec<Asset>,
-    pub expanded_weights: Asset,
+    #[serde(alias = "expanded_weights")]
+    pub expanded_model: Asset,
+    #[serde(default)]
+    pub graph_format: String,
 }
 #[derive(Deserialize)]
 pub struct Asset {
@@ -39,6 +44,9 @@ pub struct Report {
     pub duration_seconds: f64,
     pub wav_path: PathBuf,
     pub phrases: Vec<String>,
+    pub wall_seconds: f64,
+    pub generation_seconds: f64,
+    pub loaded_speech_graph: bool,
 }
 fn hash(path: &Path) -> Result<String> {
     let mut f = fs::File::open(path)?;
@@ -53,7 +61,7 @@ fn hash(path: &Path) -> Result<String> {
     }
     Ok(format!("{:x}", h.finalize()))
 }
-fn verify(path: &Path, asset: &Asset) -> Result<()> {
+pub(crate) fn verify(path: &Path, asset: &Asset) -> Result<()> {
     ensure!(
         fs::metadata(path)?.len() == asset.bytes,
         "wrong size: {}",
@@ -84,24 +92,32 @@ pub fn prepare(root: &Path) -> Result<PathBuf> {
     }
     let cache = root.join("cache");
     fs::create_dir_all(&cache)?;
-    let weights = cache.join("step.weights");
-    if !weights.exists() || verify(&weights, &m.expanded_weights).is_err() {
-        let tmp = cache.join(format!("step.weights.{}.partial", std::process::id()));
+    ensure!(
+        Path::new(&m.expanded_model.path).components().count() == 1
+            && Path::new(&m.expanded_model.path)
+                .components()
+                .all(|c| matches!(c, std::path::Component::Normal(_))),
+        "unsafe expanded model path"
+    );
+    let weights = cache.join(&m.expanded_model.path);
+    if !weights.exists() || verify(&weights, &m.expanded_model).is_err() {
+        let tmp = cache.join(format!(
+            "{}.{}.partial",
+            m.expanded_model.path,
+            std::process::id()
+        ));
         let result = (|| -> Result<()> {
-            let input = fs::File::open(root.join("step.weights.zst"))?;
+            let input = fs::File::open(root.join(format!("{}.zst", m.expanded_model.path)))?;
             let mut decoder = zstd::stream::read::Decoder::new(input)?;
             let mut out = fs::File::create(&tmp)?;
             let n = std::io::copy(
-                &mut decoder.by_ref().take(m.expanded_weights.bytes + 1),
+                &mut decoder.by_ref().take(m.expanded_model.bytes + 1),
                 &mut out,
             )?;
-            ensure!(
-                n == m.expanded_weights.bytes,
-                "expanded weight size mismatch"
-            );
+            ensure!(n == m.expanded_model.bytes, "expanded weight size mismatch");
             out.flush()?;
             out.sync_all()?;
-            verify(&tmp, &m.expanded_weights)?;
+            verify(&tmp, &m.expanded_model)?;
             fs::rename(&tmp, &weights)?;
             Ok(())
         })();
@@ -110,6 +126,13 @@ pub fn prepare(root: &Path) -> Result<PathBuf> {
         }
         result?;
     }
+    if m.graph_format == "nnef-q4" {
+        return Ok(weights);
+    }
+    ensure!(
+        m.graph_format.is_empty() || m.graph_format == "onnx-f32",
+        "unsupported graph format"
+    );
     fs::copy(root.join("step.onnx"), cache.join("step.onnx"))?;
     Ok(cache.join("step.onnx"))
 }
@@ -367,46 +390,163 @@ pub fn postprocess(raw: &[f32], rms: f32) -> Vec<f32> {
     out.extend(vec![0.; 2400]);
     out
 }
-pub fn synthesize(root: &Path, out: &Path, text: &str, seed: u64) -> Result<Report> {
-    ensure!(text.len() <= 4000, "text exceeds 4000 UTF-8 bytes");
-    let phrases = split_phrases(text);
-    ensure!(!phrases.is_empty(), "empty text");
-    let step = prepare(root)?;
-    let frontend = Frontend::load(&root.join("frontend"))?;
-    let v = voice(root)?;
-    let mut audio = Vec::new();
-    let mut phones = Vec::new();
-    for phrase in phrases {
-        let p = paced(&phrase, &frontend.phones(&phrase)?);
-        let (i, t) = inputs(root, &p)?;
-        let fixture = DecodeFixture {
-            target_tokens: t,
-            noise: noise(seed, t),
-            source_codes: Vec::new(),
-        };
-        let graph = Graph::load(&step, &i)?;
-        let codes = koochik::decode(&graph, i, &fixture)?;
-        drop(graph);
-        let ci = vec![Tensor::from_shape(&[1, 8, t], &codes)?];
-        let codec = Graph::load(&root.join("decoder.onnx"), &ci)?;
-        let result = codec.run(&ci)?;
-        let raw = result[0].to_plain_array_view::<f32>()?;
-        let processed = postprocess(raw.as_slice().context("codec output")?, v.rms);
-        ensure!(!processed.is_empty(), "model produced silence");
-        if !audio.is_empty() {
-            audio.extend(vec![0.; 8400]);
-        }
-        audio.extend(processed);
-        phones.push(p);
+/// A single cached engine avoids repeated asset hashing and retains the last
+/// shape-specialized speech and codec plans. Switching bundles drops the cache.
+struct Engine {
+    root: PathBuf,
+    manifest: Vec<u8>,
+    step: PathBuf,
+    frontend: Frontend,
+    voice: Voice,
+    steps: usize,
+    asset_stamps: Vec<(PathBuf, u64, std::time::SystemTime)>,
+    graph: Option<(Vec<usize>, Graph)>,
+    codec: Option<(usize, Graph)>,
+}
+impl Engine {
+    fn load(root: &Path, manifest: Vec<u8>) -> Result<Self> {
+        let settings: Manifest = serde_json::from_slice(&manifest)?;
+        ensure!(
+            [8, 16, 24, 32].contains(&settings.inference_steps),
+            "unsupported generation steps"
+        );
+        let step = prepare(root)?;
+        let mut paths: Vec<PathBuf> = settings.files.iter().map(|a| root.join(&a.path)).collect();
+        paths.push(step.clone());
+        paths.push(root.join("cache").join(&settings.expanded_model.path));
+        let asset_stamps = paths
+            .into_iter()
+            .map(|path| -> Result<_> {
+                let metadata = fs::metadata(&path)?;
+                Ok((path, metadata.len(), metadata.modified()?))
+            })
+            .collect::<Result<Vec<_>>>()?;
+        Ok(Self {
+            asset_stamps,
+            steps: settings.inference_steps,
+            root: root.into(),
+            manifest,
+            step,
+            frontend: Frontend::load(&root.join("frontend"))?,
+            voice: voice(root)?,
+            graph: None,
+            codec: None,
+        })
     }
-    koochik::write_wav(out, &audio, 24000)?;
-    Ok(Report {
-        model: "Gooya Koochik v2.0-exp",
-        samples: audio.len(),
-        duration_seconds: audio.len() as f64 / 24000.,
-        wav_path: out.into(),
-        phrases: phones,
-    })
+    fn assets_unchanged(&self) -> bool {
+        self.asset_stamps.iter().all(|(path, size, modified)| {
+            fs::metadata(path)
+                .is_ok_and(|m| m.len() == *size && m.modified().is_ok_and(|t| t == *modified))
+        })
+    }
+    fn synthesize(
+        &mut self,
+        out: &Path,
+        text: &str,
+        seed: u64,
+        progress: &mut dyn FnMut(&str),
+    ) -> Result<Report> {
+        ensure!(text.len() <= 4000, "text exceeds 4000 UTF-8 bytes");
+        let phrases = split_phrases(text);
+        ensure!(!phrases.is_empty(), "empty text");
+        let mut generation_seconds = 0.;
+        let mut loaded_speech_graph = false;
+        let mut audio = Vec::new();
+        let mut phones = Vec::new();
+        for (index, phrase) in phrases.iter().enumerate() {
+            progress(&format!(
+                "آماده‌سازی تلفظ · بخش {}/{}",
+                index + 1,
+                phrases.len()
+            ));
+            let p = paced(phrase, &self.frontend.phones(phrase)?);
+            let (i, t) = inputs(&self.root, &p)?;
+            let fixture = DecodeFixture {
+                num_steps: self.steps,
+                target_tokens: t,
+                noise: noise(seed, t),
+                source_codes: Vec::new(),
+            };
+            let shape = i[0].shape().to_vec();
+            if self.graph.as_ref().is_none_or(|(s, _)| *s != shape) {
+                progress("آماده‌سازی مدل صدا…");
+                loaded_speech_graph = true;
+                self.graph = None;
+                self.graph = Some((shape, Graph::load(&self.step, &i)?));
+            }
+            let generation_start = std::time::Instant::now();
+            let codes = koochik::decode_with_progress(
+                &self.graph.as_ref().unwrap().1,
+                i,
+                &fixture,
+                &mut |done, total| {
+                    progress(&format!(
+                        "ساخت صدا · بخش {}/{} · {done}/{total}",
+                        index + 1,
+                        phrases.len()
+                    ))
+                },
+            )?;
+            generation_seconds += generation_start.elapsed().as_secs_f64();
+            progress("آماده‌سازی فایل صوتی…");
+            let ci = vec![Tensor::from_shape(&[1, 8, t], &codes)?];
+            if self.codec.as_ref().is_none_or(|(length, _)| *length != t) {
+                self.codec = None;
+                self.codec = Some((t, Graph::load(&self.root.join("decoder.onnx"), &ci)?));
+            }
+            let result = self.codec.as_ref().unwrap().1.run(&ci)?;
+            let raw = result[0].to_plain_array_view::<f32>()?;
+            let processed = postprocess(raw.as_slice().context("codec output")?, self.voice.rms);
+            ensure!(!processed.is_empty(), "model produced silence");
+            if !audio.is_empty() {
+                audio.extend(vec![0.; 8400]);
+            }
+            audio.extend(processed);
+            phones.push(p);
+        }
+        koochik::write_wav(out, &audio, 24000)?;
+        Ok(Report {
+            wall_seconds: 0.,
+            generation_seconds,
+            loaded_speech_graph,
+            model: "Gooya Koochik v2.0-exp",
+            samples: audio.len(),
+            duration_seconds: audio.len() as f64 / 24000.,
+            wav_path: out.into(),
+            phrases: phones,
+        })
+    }
+}
+pub fn synthesize_with_progress(
+    root: &Path,
+    out: &Path,
+    text: &str,
+    seed: u64,
+    progress: &mut dyn FnMut(&str),
+) -> Result<Report> {
+    static ENGINE: std::sync::OnceLock<std::sync::Mutex<Option<Engine>>> =
+        std::sync::OnceLock::new();
+    let start = std::time::Instant::now();
+    let root = root.canonicalize()?;
+    let manifest = fs::read(root.join("manifest.json"))?;
+    let mut cached = ENGINE
+        .get_or_init(|| std::sync::Mutex::new(None))
+        .lock()
+        .map_err(|_| anyhow::anyhow!("speech engine lock poisoned"))?;
+    if cached
+        .as_ref()
+        .is_none_or(|e| e.root != root || e.manifest != manifest || !e.assets_unchanged())
+    {
+        progress("بارگذاری و بررسی مدل…");
+        *cached = None;
+        *cached = Some(Engine::load(&root, manifest)?);
+    }
+    let mut report = cached.as_mut().unwrap().synthesize(out, text, seed, progress)?;
+    report.wall_seconds = start.elapsed().as_secs_f64();
+    Ok(report)
+}
+pub fn synthesize(root: &Path, out: &Path, text: &str, seed: u64) -> Result<Report> {
+    synthesize_with_progress(root, out, text, seed, &mut |message| eprintln!("{message}"))
 }
 
 #[cfg(test)]

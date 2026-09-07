@@ -14,7 +14,12 @@ use gooya_native_desktop::pipeline;
 enum UserEvent {
     Done(Result<String, String>),
     Paste(Result<String, String>),
-    FetchProgress { done: usize, total: usize, name: String },
+    SynthesisProgress(String),
+    FetchProgress {
+        done: usize,
+        total: usize,
+        name: String,
+    },
     FetchDone(Result<String, String>),
 }
 
@@ -43,6 +48,12 @@ fn main() -> wry::Result<()> {
                 );
                 let _ = webview.evaluate_script(&script);
             }
+            Event::UserEvent(UserEvent::SynthesisProgress(message)) => {
+                let _ = webview.evaluate_script(&format!(
+                    "window.__gooyaSynthesisProgress({})",
+                    serde_json::to_string(&message).unwrap()
+                ));
+            }
             Event::UserEvent(UserEvent::Paste(result)) => {
                 let text = result.unwrap_or_else(|_| String::new());
                 let script = format!(
@@ -66,9 +77,15 @@ fn main() -> wry::Result<()> {
                     Err(msg) => (false, msg),
                 };
                 let script = format!(
-                    "window.__gooyaFetchDone({}, {})",
+                    "window.__gooyaFetchDone({}, {}); window.__gooyaModels({}, {})",
                     ok,
-                    serde_json::to_string(&msg).unwrap_or_else(|_| "\"خطا\"".into())
+                    serde_json::to_string(&msg).unwrap_or_else(|_| "\"خطا\"".into()),
+                    assets_complete(&data_dir()),
+                    std::env::var_os("GOOYA_KOOCHIK_MODEL_DIR")
+                        .map(PathBuf::from)
+                        .unwrap_or_else(|| data_dir().join("koochik-v2"))
+                        .join("manifest.json")
+                        .is_file()
                 );
                 let _ = webview.evaluate_script(&script);
             }
@@ -91,10 +108,7 @@ fn app_data_dir() -> PathBuf {
     let base = std::env::var("XDG_DATA_HOME")
         .map(PathBuf::from)
         .map(|p| p.join("gooya"))
-        .or_else(|_| {
-            std::env::var("HOME")
-                .map(|h| PathBuf::from(h).join(".local/share/gooya"))
-        })
+        .or_else(|_| std::env::var("HOME").map(|h| PathBuf::from(h).join(".local/share/gooya")))
         .unwrap_or_else(|_| std::env::temp_dir());
     base
 }
@@ -188,7 +202,10 @@ fn play(path: std::path::PathBuf) {
             .args([
                 "-NoProfile",
                 "-Command",
-                &format!("(New-Object Media.SoundPlayer '{}').PlaySync()", path.display()),
+                &format!(
+                    "(New-Object Media.SoundPlayer '{}').PlaySync()",
+                    path.display()
+                ),
             ])
             .status();
     }
@@ -212,7 +229,9 @@ fn create_window(
     let root = data_dir();
     let model_dir = root.join("tract-bundle-b168");
     let tokenizer_path = root.join("grapheme_mtl_merged_expanded_v1.json");
-    let koochik_dir = std::env::var_os("GOOYA_KOOCHIK_MODEL_DIR").map(PathBuf::from).unwrap_or_else(|| root.join("koochik-v2"));
+    let koochik_dir = std::env::var_os("GOOYA_KOOCHIK_MODEL_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| root.join("koochik-v2"));
     let koochik_ready = koochik_dir.join("manifest.json").is_file();
     let koochik_dir_for_job = koochik_dir.clone();
     let model_dir_for_job = model_dir.clone();
@@ -242,6 +261,24 @@ fn create_window(
                 if let Ok(mut clipboard) = arboard::Clipboard::new() {
                     let _ = clipboard.set_text(text);
                 }
+            });
+            return;
+        }
+        if body == "fetch-koochik" {
+            let proxy = proxy.clone();
+            let root = koochik_dir_for_job.clone();
+            std::thread::spawn(move || {
+                let result =
+                    gooya_native_desktop::koochik_download::download(&root, |done, total, name| {
+                        let _ = proxy.send_event(UserEvent::FetchProgress {
+                            done,
+                            total,
+                            name: name.to_owned(),
+                        });
+                    })
+                    .map(|_| String::from("Koochik ready"))
+                    .map_err(|e| format!("{e:#}"));
+                let _ = proxy.send_event(UserEvent::FetchDone(result));
             });
             return;
         }
@@ -283,7 +320,11 @@ fn create_window(
         if !use_koochik && !body.starts_with("text:") {
             return;
         }
-        let text = body.split_once(':').map(|(_, t)| t).unwrap_or("").to_owned();
+        let text = body
+            .split_once(':')
+            .map(|(_, t)| t)
+            .unwrap_or("")
+            .to_owned();
         let koochik_dir = koochik_dir_for_job.clone();
         let model_dir = model_dir_for_job.clone();
         let tokenizer_path = tokenizer_for_job.clone();
@@ -291,9 +332,23 @@ fn create_window(
             let out = std::env::temp_dir().join("gooya-webview-output.wav");
             let result = (|| -> Result<String> {
                 if use_koochik {
-                    let report = gooya_native_desktop::koochik_bundle::synthesize(&koochik_dir, &out, &text, 43)?;
+                    let report = gooya_native_desktop::koochik_bundle::synthesize_with_progress(
+                        &koochik_dir,
+                        &out,
+                        &text,
+                        43,
+                        &mut |message| {
+                            let _ =
+                                proxy.send_event(UserEvent::SynthesisProgress(message.to_owned()));
+                        },
+                    )?;
+                    eprintln!("Koochik timing: {}", serde_json::to_string(&report)?);
                     play(out.clone());
-                    return Ok(format!("{:.2}s · {}", report.duration_seconds, report.wav_path.display()));
+                    return Ok(format!(
+                        "{:.2}s · {}",
+                        report.duration_seconds,
+                        report.wav_path.display()
+                    ));
                 }
                 let report = pipeline::synthesize_text(&model_dir, &tokenizer_path, &out, &text)?;
                 play(out.clone());
@@ -313,7 +368,12 @@ fn create_window(
 
     #[cfg(any(target_os = "windows", target_os = "macos"))]
     let webview = builder.build(&window).unwrap();
-    #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "ios", target_os = "android")))]
+    #[cfg(not(any(
+        target_os = "windows",
+        target_os = "macos",
+        target_os = "ios",
+        target_os = "android"
+    )))]
     let webview = {
         use tao::platform::unix::WindowExtUnix;
         use wry::WebViewBuilderExtUnix;
@@ -321,21 +381,23 @@ fn create_window(
         builder.build_gtk(vbox).unwrap()
     };
     let ready = assets_complete(&root);
-    let root_str = serde_json::to_string(&root.display().to_string()).unwrap_or_else(|_| "\"\"".into());
+    let root_str =
+        serde_json::to_string(&root.display().to_string()).unwrap_or_else(|_| "\"\"".into());
     // Linux uses WebKit's native clipboard (custom IPC clipboard deadlocks
     // GTK/Wayland); macOS/Windows use our Rust-path clipboard.
     let clip = !cfg!(target_os = "linux");
     let _ = webview.evaluate_script(&format!(
         "window.__gooyaInit({}, {}, {}); window.__gooyaModels({}, {})",
-        ready || koochik_ready, clip, root_str, ready, koochik_ready
+        ready || koochik_ready,
+        clip,
+        root_str,
+        ready,
+        koochik_ready
     ));
     (window, webview)
 }
 
-const FONT_PATH: &str = concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/assets/Vazirmatn-Regular.ttf"
-);
+const FONT_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/assets/Vazirmatn-Regular.ttf");
 
 fn app_html() -> String {
     use base64::Engine as _;
@@ -400,8 +462,10 @@ const HTML: &str = r#"
   <div id="dl">
     <div class="card" style="text-align:center;padding:44px 24px;">
       <div class="dltitle">مدل هنوز دانلود نشده است</div>
-      <div class="dlstatus" id="dlstatus">برای خوانش آفلاین، مدل (حدود ۶۰۰ مگابایت) از Hugging Face دانلود می‌شود. یک‌بار انجام می‌شود.</div>
-      <button id="dlbtn" dir="rtl" onclick="dofetch()" style="font-size:22px;padding:16px;">دانلود مدل</button>
+      <div class="dlstatus" id="dlstatus">مدل را یک‌بار برای خوانش آفلاین دریافت کنید. گویا کوچیک به دسترسی حساب Hugging Face شما نیاز دارد.</div>
+      <button id="dlbtn" dir="rtl" onclick="dofetch('text')" style="font-size:22px;padding:16px;">گویا بزرگ · حدود ۶۰۰ مگابایت</button>
+      <button id="dlkoochik" onclick="dofetch('koochik')" style="margin-top:12px;">گویا کوچیک · حدود ۳۹۱ مگابایت</button>
+      <button class="ghost" onclick="if(window.__gooyaHasModel){document.getElementById('dl').style.display='none';document.getElementById('composer').style.display='block';}">بازگشت</button>
     </div>
     <div class="foot">اجرای محلی · بدون ارسال متن به اینترنت</div>
   </div>
@@ -412,6 +476,7 @@ const HTML: &str = r#"
       <option value="text">Gooya Bozorg 1.5</option>
       <option value="koochik">Gooya Koochik v2.0-exp</option>
     </select>
+    <button class="ghost" id="getkoochik" onclick="dofetch('koochik')" style="margin-bottom:12px;">دریافت گویا کوچیک</button>
     <div class="card">
       <div class="cardhead"><span>متن ورودی</span><span class="count" id="count">۰ نویسه</span></div>
       <textarea id="t" dir="rtl" autofocus
@@ -430,10 +495,12 @@ const HTML: &str = r#"
 <script>
   function enDigits(s){return String(s).replace(/[۰-۹]/g,function(d){return String(d.charCodeAt(0)-0x06F0);});}
   var busy=false, hasAudio=false;
-  function dofetch(){
-    document.getElementById('dlbtn').disabled=true;
+  function dofetch(model){
+    if(busy)return;busy=true;
+    document.getElementById('composer').style.display='none';document.getElementById('dl').style.display='block';
+    document.getElementById('dlbtn').disabled=true;document.getElementById('dlkoochik').disabled=true;
     document.getElementById('dlstatus').textContent='در حال دانلود…';
-    window.ipc.postMessage('fetch');
+    window.ipc.postMessage(model==='koochik'?'fetch-koochik':'fetch');
   }
   window.__gooyaInit=function(ready,clip){
     window.__gooyaClip=clip===true;
@@ -446,10 +513,13 @@ const HTML: &str = r#"
   };
   window.__gooyaFetchDone=function(ok,msg){
     var st=document.getElementById('dlstatus');
-    if(ok){ st.textContent='آماده شد، در حال راه‌اندازی…'; location.reload(); }
+    busy=false;document.getElementById('dlbtn').disabled=false;document.getElementById('dlkoochik').disabled=false;
+    if(ok){ st.textContent='آماده شد';document.getElementById('dl').style.display='none';document.getElementById('composer').style.display='block'; }
     else { document.getElementById('dlbtn').disabled=false; st.textContent='خطا: '+msg; }
   };
   window.__gooyaModels=function(bozorg,koochik){
+    window.__gooyaHasModel=bozorg||koochik;
+    document.getElementById('getkoochik').style.display=koochik?'none':'block';
     var m=document.getElementById('model');
     m.options[0].disabled=!bozorg; m.options[1].disabled=!koochik;
     m.value=koochik?'koochik':'text';
@@ -465,6 +535,7 @@ const HTML: &str = r#"
     window.ipc.postMessage(document.getElementById('model').value+':'+t);
   }
   function saveIt(){busy=false;window.ipc.postMessage('save');}
+  window.__gooyaSynthesisProgress=function(message){document.getElementById('status').textContent=message;};
   window.__gooyaResult=function(ok,msg){
     var st=document.getElementById('status');
     if(ok){

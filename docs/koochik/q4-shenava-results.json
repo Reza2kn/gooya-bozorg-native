@@ -1,0 +1,514 @@
+{
+  "metric": "1 - corpus WER between paired Shenava transcripts",
+  "cases": 12,
+  "word_errors": 6,
+  "word_total": 67,
+  "word_parity": 0.9104477611940298,
+  "passes": false,
+  "results": [
+    {
+      "id": "case-00",
+      "requested_text": "سلام، حالت چطوره؟",
+      "source": {
+        "audio_sha256": "c29460ef37404361cda71fe354bd23b8142560a280458b68dc7255b5e64e5ac7",
+        "response": {
+          "text": "سلام حالت چطوره؟",
+          "greedy": "سلام حالت چطوره؟",
+          "elapsed_ms": 762,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "سلام حالت چطوره؟",
+        "normalized_transcript": "سلام حالت چطوره",
+        "elapsed_seconds": 0.8283489169552922
+      },
+      "candidate": {
+        "audio_sha256": "322d4f14e7b9a4280e9ef1e0b3ba84cd0e02083c4df521d169dcfc03bf8b986e",
+        "response": {
+          "text": "سلام حالت چطوره؟",
+          "greedy": "سلام حالت چطوره؟",
+          "elapsed_ms": 741,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "سلام حالت چطوره؟",
+        "normalized_transcript": "سلام حالت چطوره",
+        "elapsed_seconds": 0.7615419579669833
+      },
+      "word_errors": 0,
+      "word_total": 3,
+      "char_errors": 0,
+      "char_total": 13,
+      "word_parity": 1.0,
+      "source_vs_requested_word_errors": 0,
+      "candidate_vs_requested_word_errors": 0,
+      "nonempty": true
+    },
+    {
+      "id": "case-01",
+      "requested_text": "قرار بود امروز بیای، چرا نیومدی؟",
+      "source": {
+        "audio_sha256": "2f0c41102c9059fe2f6d1e317dbff8c4ccd23b762dfea2b6a48e8852e6994bf5",
+        "response": {
+          "text": "قرار بود امروز بیای چرا نیومدی؟",
+          "greedy": "قرار بود امروز بیای چرا نیومدی؟",
+          "elapsed_ms": 735,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "قرار بود امروز بیای چرا نیومدی؟",
+        "normalized_transcript": "قرار بود امروز بیای چرا نیومدی",
+        "elapsed_seconds": 0.75606554094702
+      },
+      "candidate": {
+        "audio_sha256": "ba6e6942610807a60bb7aca03b54ad2b887f22f98634eddcf906de4fa6b8bada",
+        "response": {
+          "text": "قرار بود امروز بیای چرا نیومدی؟",
+          "greedy": "قرار بود امروز بیای چرا نیومدی؟",
+          "elapsed_ms": 734,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "قرار بود امروز بیای چرا نیومدی؟",
+        "normalized_transcript": "قرار بود امروز بیای چرا نیومدی",
+        "elapsed_seconds": 0.7553643749561161
+      },
+      "word_errors": 0,
+      "word_total": 6,
+      "char_errors": 0,
+      "char_total": 25,
+      "word_parity": 1.0,
+      "source_vs_requested_word_errors": 0,
+      "candidate_vs_requested_word_errors": 0,
+      "nonempty": true
+    },
+    {
+      "id": "case-02",
+      "requested_text": "امروز هوا خیلی خوبه.",
+      "source": {
+        "audio_sha256": "419dfdae9e6f5a9c94c3d841feace3f5e3357bcab504dc17f99ba239bee79a96",
+        "response": {
+          "text": "امروز هوا خیلی خوبه",
+          "greedy": "امروز هوا خیلی خوبه",
+          "elapsed_ms": 752,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "امروز هوا خیلی خوبه",
+        "normalized_transcript": "امروز هوا خیلی خوبه",
+        "elapsed_seconds": 0.7712865830399096
+      },
+      "candidate": {
+        "audio_sha256": "e1685c6962a31efd1e23d4d47d0432b303ce9c7348c8ca2b8259df956a7b6b77",
+        "response": {
+          "text": "امروز هوا خیلی خوبه",
+          "greedy": "امروز هوا خیلی خوبه",
+          "elapsed_ms": 749,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "امروز هوا خیلی خوبه",
+        "normalized_transcript": "امروز هوا خیلی خوبه",
+        "elapsed_seconds": 0.7665074579417706
+      },
+      "word_errors": 0,
+      "word_total": 4,
+      "char_errors": 0,
+      "char_total": 16,
+      "word_parity": 1.0,
+      "source_vs_requested_word_errors": 0,
+      "candidate_vs_requested_word_errors": 0,
+      "nonempty": true
+    },
+    {
+      "id": "case-03",
+      "requested_text": "واقعاً مطمئنی که فردا می‌رسی؟",
+      "source": {
+        "audio_sha256": "8f42e0bede14386433fb9427a2e54ceff546ba0ca154d5268dd2f0a8f2c65f71",
+        "response": {
+          "text": "واقعا مطمئنی که فردا می رسی؟",
+          "greedy": "واقعا مطمئنی که فردا می رسی؟",
+          "elapsed_ms": 760,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "واقعا مطمئنی که فردا می رسی؟",
+        "normalized_transcript": "واقعا مطمئنی که فردا می رسی",
+        "elapsed_seconds": 0.7911846248898655
+      },
+      "candidate": {
+        "audio_sha256": "fdfd4fa053d8450bdf234f1479f5a38e78de6ca1f2ac3741a1fef6404f713d3c",
+        "response": {
+          "text": "واقعا مطمئنی که فردا می رسی",
+          "greedy": "واقعا مطمئنی که فردا می رسی",
+          "elapsed_ms": 754,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "واقعا مطمئنی که فردا می رسی",
+        "normalized_transcript": "واقعا مطمئنی که فردا می رسی",
+        "elapsed_seconds": 0.7707018330693245
+      },
+      "word_errors": 0,
+      "word_total": 6,
+      "char_errors": 0,
+      "char_total": 22,
+      "word_parity": 1.0,
+      "source_vs_requested_word_errors": 1,
+      "candidate_vs_requested_word_errors": 1,
+      "nonempty": true
+    },
+    {
+      "id": "case-04",
+      "requested_text": "چه خبر خوبی، بالاخره تموم شد!",
+      "source": {
+        "audio_sha256": "4ba94886fddfc6435cb7eaab6a7c686280171bb41348b8ce8fd0962c98b21c1f",
+        "response": {
+          "text": "چه خبر خوبی بالاخره تموم شد؟",
+          "greedy": "چه خبر خوبی بالاخره تموم شد؟",
+          "elapsed_ms": 752,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "چه خبر خوبی بالاخره تموم شد؟",
+        "normalized_transcript": "چه خبر خوبی بالاخره تموم شد",
+        "elapsed_seconds": 0.8861659590620548
+      },
+      "candidate": {
+        "audio_sha256": "44c8579ccf6c0cc5784f52d92f9a8fae88543fdbfe972e9d664c6c2e4078d94f",
+        "response": {
+          "text": "چه خبر خوبی بالاخره تموم شد؟",
+          "greedy": "چه خبر خوبی بالاخره تموم شد؟",
+          "elapsed_ms": 733,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "چه خبر خوبی بالاخره تموم شد؟",
+        "normalized_transcript": "چه خبر خوبی بالاخره تموم شد",
+        "elapsed_seconds": 0.9068424999713898
+      },
+      "word_errors": 0,
+      "word_total": 6,
+      "char_errors": 0,
+      "char_total": 22,
+      "word_parity": 1.0,
+      "source_vs_requested_word_errors": 0,
+      "candidate_vs_requested_word_errors": 0,
+      "nonempty": true
+    },
+    {
+      "id": "case-05",
+      "requested_text": "ببخشید، می‌شه دوباره توضیح بدید؟",
+      "source": {
+        "audio_sha256": "941d906ba40cf93afef9c9950568cfc1c220c584fb8421d8e09db2b4c20324e7",
+        "response": {
+          "text": "ببخشید می شه دوباره توضیح بدید.",
+          "greedy": "ببخشید می شه دوباره توضیح بدید.",
+          "elapsed_ms": 773,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "ببخشید می شه دوباره توضیح بدید.",
+        "normalized_transcript": "ببخشید می شه دوباره توضیح بدید",
+        "elapsed_seconds": 0.7910455840174109
+      },
+      "candidate": {
+        "audio_sha256": "6c126cbc97fe46b54a894b33b3a947b53ead5c0d3effc4e0bc98170c561c043d",
+        "response": {
+          "text": "ببخشید می شه دوباره توضیح بدید؟",
+          "greedy": "ببخشید می شه دوباره توضیح بدید؟",
+          "elapsed_ms": 770,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "ببخشید می شه دوباره توضیح بدید؟",
+        "normalized_transcript": "ببخشید می شه دوباره توضیح بدید",
+        "elapsed_seconds": 0.7910572090186179
+      },
+      "word_errors": 0,
+      "word_total": 6,
+      "char_errors": 0,
+      "char_total": 25,
+      "word_parity": 1.0,
+      "source_vs_requested_word_errors": 0,
+      "candidate_vs_requested_word_errors": 0,
+      "nonempty": true
+    },
+    {
+      "id": "case-06",
+      "requested_text": "جلسه ساعت سه شروع می‌شه.",
+      "source": {
+        "audio_sha256": "c03e9edc8930c3259fd71fddf447e33c602a4a45b01018f7df102042d9d6b402",
+        "response": {
+          "text": "جلسه ساعت سه شروع می",
+          "greedy": "جلسه ساعت سه شروع می",
+          "elapsed_ms": 786,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "جلسه ساعت سه شروع می",
+        "normalized_transcript": "جلسه ساعت سه شروع می",
+        "elapsed_seconds": 0.8094277500640601
+      },
+      "candidate": {
+        "audio_sha256": "debe1bff63225809f6e164547168b58e691652be54ad839183704410cdaaddea",
+        "response": {
+          "text": "جلسه ساعت سه شروع می شه",
+          "greedy": "جلسه ساعت سه شروع می شه",
+          "elapsed_ms": 799,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "جلسه ساعت سه شروع می شه",
+        "normalized_transcript": "جلسه ساعت سه شروع می شه",
+        "elapsed_seconds": 0.8193566659465432
+      },
+      "word_errors": 1,
+      "word_total": 5,
+      "char_errors": 2,
+      "char_total": 16,
+      "word_parity": 0.8,
+      "source_vs_requested_word_errors": 1,
+      "candidate_vs_requested_word_errors": 0,
+      "nonempty": true
+    },
+    {
+      "id": "case-07",
+      "requested_text": "قیمت این کتاب صد و بیست هزار تومنه.",
+      "source": {
+        "audio_sha256": "ef1edd9b4733c747af18de770136f84eef2f4d044edc287641237006e3664f76",
+        "response": {
+          "text": "قیمت این کتاب صد و بیست هزار تومنه",
+          "greedy": "قیمت این کتاب صد و بیست هزار تومنه",
+          "elapsed_ms": 793,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "قیمت این کتاب صد و بیست هزار تومنه",
+        "normalized_transcript": "قیمت این کتاب صد و بیست هزار تومنه",
+        "elapsed_seconds": 0.8175648748874664
+      },
+      "candidate": {
+        "audio_sha256": "70ed23f5284a0e73702842a999d2caaedc94314b3cc18b68e3c2f3a8c90beda0",
+        "response": {
+          "text": "قیمت این کتاب صد و بیست هزار تومنه",
+          "greedy": "قیمت این کتاب صد و بیست هزار تومنه",
+          "elapsed_ms": 773,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "قیمت این کتاب صد و بیست هزار تومنه",
+        "normalized_transcript": "قیمت این کتاب صد و بیست هزار تومنه",
+        "elapsed_seconds": 0.7907582500483841
+      },
+      "word_errors": 0,
+      "word_total": 8,
+      "char_errors": 0,
+      "char_total": 27,
+      "word_parity": 1.0,
+      "source_vs_requested_word_errors": 0,
+      "candidate_vs_requested_word_errors": 0,
+      "nonempty": true
+    },
+    {
+      "id": "case-08",
+      "requested_text": "سارا و آرش امروز به شیراز رفتن.",
+      "source": {
+        "audio_sha256": "bdb65433f15088ae441b43630073cd3bf2c676f5e7aac6ebc72d12667c95816f",
+        "response": {
+          "text": "سارا و آرش امروز به شیراز رفتن.",
+          "greedy": "سارا و آرش امروز به شیراز رفتن.",
+          "elapsed_ms": 749,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "سارا و آرش امروز به شیراز رفتن.",
+        "normalized_transcript": "سارا و آرش امروز به شیراز رفتن",
+        "elapsed_seconds": 0.7880954591091722
+      },
+      "candidate": {
+        "audio_sha256": "47b49c270edcbec51dead429d684a066c5beb4f508dbe07d18ba3970e125dd3d",
+        "response": {
+          "text": "سارا و آرش امروز به شیراز رفتن",
+          "greedy": "سارا و آرش امروز به شیراز رفتن",
+          "elapsed_ms": 741,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "سارا و آرش امروز به شیراز رفتن",
+        "normalized_transcript": "سارا و آرش امروز به شیراز رفتن",
+        "elapsed_seconds": 0.7752037087921053
+      },
+      "word_errors": 0,
+      "word_total": 7,
+      "char_errors": 0,
+      "char_total": 24,
+      "word_parity": 1.0,
+      "source_vs_requested_word_errors": 0,
+      "candidate_vs_requested_word_errors": 0,
+      "nonempty": true
+    },
+    {
+      "id": "case-09",
+      "requested_text": "نه، من اینو نگفتم.",
+      "source": {
+        "audio_sha256": "09e3d2f3594296a9d81412ae6db159d04483b975dae6b3a4e6078668494ae354",
+        "response": {
+          "text": "من اینو نگفتم",
+          "greedy": "من اینو نگفتم",
+          "elapsed_ms": 798,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "من اینو نگفتم",
+        "normalized_transcript": "من اینو نگفتم",
+        "elapsed_seconds": 0.8163423750083894
+      },
+      "candidate": {
+        "audio_sha256": "a51775254bb4d908d1cd0ed5d3381a88346282adf2b65a398d7804b71f9dada4",
+        "response": {
+          "text": "من اینو نگفتم.",
+          "greedy": "من اینو نگفتم.",
+          "elapsed_ms": 780,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "من اینو نگفتم.",
+        "normalized_transcript": "من اینو نگفتم",
+        "elapsed_seconds": 0.7979514591861516
+      },
+      "word_errors": 0,
+      "word_total": 3,
+      "char_errors": 0,
+      "char_total": 11,
+      "word_parity": 1.0,
+      "source_vs_requested_word_errors": 1,
+      "candidate_vs_requested_word_errors": 1,
+      "nonempty": true
+    },
+    {
+      "id": "case-10",
+      "requested_text": "اول فایل رو ذخیره کن، بعد پنجره رو ببند.",
+      "source": {
+        "audio_sha256": "9ddfbe883cdf4eddcac939194836b9d9999a81122725a2c79e364a04a866a71d",
+        "response": {
+          "text": "اول فایل رو ذخیره کن بت پنجره رو ببند.",
+          "greedy": "اول فایل رو ذخیره کن بت پنجره رو ببند.",
+          "elapsed_ms": 751,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "اول فایل رو ذخیره کن بت پنجره رو ببند.",
+        "normalized_transcript": "اول فایل رو ذخیره کن بت پنجره رو ببند",
+        "elapsed_seconds": 0.7732152079697698
+      },
+      "candidate": {
+        "audio_sha256": "6dc2fe8a470e4aa8967088a45ec17124674a5a651a9e4bb93a34cbc7344c91ed",
+        "response": {
+          "text": "خیلی خوشحال شدم اول فایل ذخیره کن بت پنجنجره رو ببند.",
+          "greedy": "خیلی خوشحال شدم اول فایل ذخیره کن بت پنجنجره رو ببند.",
+          "elapsed_ms": 909,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "خیلی خوشحال شدم اول فایل ذخیره کن بت پنجنجره رو ببند.",
+        "normalized_transcript": "خیلی خوشحال شدم اول فایل ذخیره کن بت پنجنجره رو ببند",
+        "elapsed_seconds": 0.929776957957074
+      },
+      "word_errors": 5,
+      "word_total": 9,
+      "char_errors": 17,
+      "char_total": 29,
+      "word_parity": 0.4444444444444444,
+      "source_vs_requested_word_errors": 1,
+      "candidate_vs_requested_word_errors": 6,
+      "nonempty": true
+    },
+    {
+      "id": "case-11",
+      "requested_text": "برای شروع آماده‌ای؟",
+      "source": {
+        "audio_sha256": "7983d2edaf4c0448ba11114863e5459ede8b3a69b3b0a476deba2309e1a4c240",
+        "response": {
+          "text": "برای شروع آماده ای؟",
+          "greedy": "برای شروع آماده ای؟",
+          "elapsed_ms": 780,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "برای شروع آماده ای؟",
+        "normalized_transcript": "برای شروع آماده ای",
+        "elapsed_seconds": 0.800432916963473
+      },
+      "candidate": {
+        "audio_sha256": "2ba3ef2da949c822c70739cbae92e7c032bbcd8184af26fe44ecb76d45df0019",
+        "response": {
+          "text": "برای شروع آماده ای",
+          "greedy": "برای شروع آماده ای",
+          "elapsed_ms": 786,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "برای شروع آماده ای",
+        "normalized_transcript": "برای شروع آماده ای",
+        "elapsed_seconds": 0.8024384588934481
+      },
+      "word_errors": 0,
+      "word_total": 4,
+      "char_errors": 0,
+      "char_total": 15,
+      "word_parity": 1.0,
+      "source_vs_requested_word_errors": 0,
+      "candidate_vs_requested_word_errors": 0,
+      "nonempty": true
+    }
+  ]
+}

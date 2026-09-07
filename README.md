@@ -181,4 +181,4 @@ This project is non-commercial research/creative code. 🎨
 - You, for reading this far 💛
 ## Gooya Koochik v2.0-exp
 
-A separate tract-only Koochik engine and model picker are available on the development branch. See [native Koochik setup and parity contract](docs/koochik/README.md). The INT8 candidate failed the fidelity gate; the 1.16 GB lossless reference was rejected for download size. A compact 4-bit canary projects a 391 MB download but fails the strict internal-code gate; no small model has been promoted.
+A separate tract-only Koochik engine and model picker are available on the development branch. See [native Koochik setup and parity contract](docs/koochik/README.md). Acceptance uses paired Shenava transcription parity above 98%, not internal codec-token equality. The 391 MB Q4 candidate failed at 91.04%; smaller-download quality and latency work is ongoing. No compact model has been promoted yet.

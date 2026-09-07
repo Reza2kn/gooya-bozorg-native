@@ -68,6 +68,7 @@ impl Frontend {
         }
         let hidden = Tensor::from_shape(&[5, s, 512], &hidden)?;
         let mask = Tensor::from_shape(&[5, s], &vec![1i64; 5 * s])?;
+        let decoder = Graph::load_g2p_decoder(&self.decoder, s)?;
         let mut beams = vec![vec![0i64]; 5];
         let mut scores = vec![-1e9f32; 5];
         scores[0] = 0.;
@@ -80,7 +81,7 @@ impl Frontend {
                 hidden.clone(),
                 mask.clone(),
             ];
-            let out = Graph::load(&self.decoder, &di)?.run(&di)?;
+            let out = decoder.run(&di)?;
             let arr = out[0].to_plain_array_view::<f32>()?;
             ensure!(arr.shape() == [5, 384], "unexpected G2P logits");
             let logits = arr.as_slice().unwrap();

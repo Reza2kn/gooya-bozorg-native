@@ -1,0 +1,86 @@
+[
+  {
+    "case": "case-00",
+    "seconds": 1.1749541668687016,
+    "passes": true,
+    "output": "Exact native frontend, duration and conditioning: artifacts/gooya-koochik-tract/parity/case-00\n",
+    "error": ""
+  },
+  {
+    "case": "case-01",
+    "seconds": 1.6411413750611246,
+    "passes": true,
+    "output": "Exact native frontend, duration and conditioning: artifacts/gooya-koochik-tract/parity/case-01\n",
+    "error": ""
+  },
+  {
+    "case": "case-02",
+    "seconds": 1.0381230420898646,
+    "passes": true,
+    "output": "Exact native frontend, duration and conditioning: artifacts/gooya-koochik-tract/parity/case-02\n",
+    "error": ""
+  },
+  {
+    "case": "case-03",
+    "seconds": 1.1983914589509368,
+    "passes": true,
+    "output": "Exact native frontend, duration and conditioning: artifacts/gooya-koochik-tract/parity/case-03\n",
+    "error": ""
+  },
+  {
+    "case": "case-04",
+    "seconds": 1.3998957090079784,
+    "passes": true,
+    "output": "Exact native frontend, duration and conditioning: artifacts/gooya-koochik-tract/parity/case-04\n",
+    "error": ""
+  },
+  {
+    "case": "case-05",
+    "seconds": 1.210363500053063,
+    "passes": true,
+    "output": "Exact native frontend, duration and conditioning: artifacts/gooya-koochik-tract/parity/case-05\n",
+    "error": ""
+  },
+  {
+    "case": "case-06",
+    "seconds": 1.0807391670532525,
+    "passes": true,
+    "output": "Exact native frontend, duration and conditioning: artifacts/gooya-koochik-tract/parity/case-06\n",
+    "error": ""
+  },
+  {
+    "case": "case-07",
+    "seconds": 1.3632766669616103,
+    "passes": true,
+    "output": "Exact native frontend, duration and conditioning: artifacts/gooya-koochik-tract/parity/case-07\n",
+    "error": ""
+  },
+  {
+    "case": "case-08",
+    "seconds": 1.111334125045687,
+    "passes": true,
+    "output": "Exact native frontend, duration and conditioning: artifacts/gooya-koochik-tract/parity/case-08\n",
+    "error": ""
+  },
+  {
+    "case": "case-09",
+    "seconds": 0.7646528340410441,
+    "passes": true,
+    "output": "Exact native frontend, duration and conditioning: artifacts/gooya-koochik-tract/parity/case-09\n",
+    "error": ""
+  },
+  {
+    "case": "case-10",
+    "seconds": 1.5613177090417594,
+    "passes": true,
+    "output": "Exact native frontend, duration and conditioning: artifacts/gooya-koochik-tract/parity/case-10\n",
+    "error": ""
+  },
+  {
+    "case": "case-11",
+    "seconds": 0.9558846671134233,
+    "passes": true,
+    "output": "Exact native frontend, duration and conditioning: artifacts/gooya-koochik-tract/parity/case-11\n",
+    "error": ""
+  }
+]

@@ -808,6 +808,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-foundation"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2a6cd9ae233e7f62ba4e9353e81a88df7fc8a5987b8d445b4d90c879bd156f6"
+dependencies = [
+ "core-foundation-sys",
+ "libc",
+]
+
+[[package]]
 name = "core-foundation-sys"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -820,8 +830,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c07782be35f9e1140080c6b96f0d44b739e2278479f64e02fdab4e32dfd8b081"
 dependencies = [
  "bitflags 1.3.2",
- "core-foundation",
- "core-graphics-types",
+ "core-foundation 0.9.4",
+ "core-graphics-types 0.1.3",
  "foreign-types",
  "libc",
 ]
@@ -833,7 +843,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "45390e6114f68f718cc7a830514a96f903cccd70d02a8f6d9f643ac4ba45afaf"
 dependencies = [
  "bitflags 1.3.2",
- "core-foundation",
+ "core-foundation 0.9.4",
+ "libc",
+]
+
+[[package]]
+name = "core-graphics-types"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d44a101f213f6c4cdc1853d4b78aef6db6bdfa3468798cc1d9912f4735013eb"
+dependencies = [
+ "bitflags 2.13.1",
+ "core-foundation 0.10.1",
  "libc",
 ]
 
@@ -1712,6 +1733,7 @@ dependencies = [
  "tokenizers",
  "tract-core",
  "tract-linalg",
+ "tract-metal",
  "tract-nnef",
  "tract-onnx",
  "unicode_categories",
@@ -2312,7 +2334,22 @@ checksum = "f569fb946490b5743ad69813cb19629130ce9374034abe31614a36402d18f99e"
 dependencies = [
  "bitflags 2.13.1",
  "block",
- "core-graphics-types",
+ "core-graphics-types 0.1.3",
+ "foreign-types",
+ "log",
+ "objc",
+ "paste",
+]
+
+[[package]]
+name = "metal"
+version = "0.33.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c7047791b5bc903b8cd963014b355f71dc9864a9a0b727057676c1dcae5cbc15"
+dependencies = [
+ "bitflags 2.13.1",
+ "block",
+ "core-graphics-types 0.2.0",
  "foreign-types",
  "log",
  "objc",
@@ -4153,6 +4190,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "tract-gpu"
+version = "0.23.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "210248491975257dfff5a405afdedce95cc879ad6361e617ec76a0ae248382df"
+dependencies = [
+ "anyhow",
+ "derive-new",
+ "downcast-rs 2.0.2",
+ "dyn-eq",
+ "dyn-hash",
+ "num-traits",
+ "tract-core",
+ "tract-pulse-opl",
+ "tract-transformers",
+]
+
+[[package]]
 name = "tract-hir"
 version = "0.23.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4186,6 +4240,26 @@ dependencies = [
  "scan_fmt",
  "tract-data",
  "walkdir",
+]
+
+[[package]]
+name = "tract-metal"
+version = "0.23.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8dcf723c4485e260ee3c4b359e3a65d0b0af97f8c686476008e6126aa7c96f53"
+dependencies = [
+ "anyhow",
+ "derive-new",
+ "downcast-rs 2.0.2",
+ "inventory",
+ "log",
+ "metal 0.33.0",
+ "num-traits",
+ "objc",
+ "tract-core",
+ "tract-gpu",
+ "tract-pulse-opl",
+ "tract-transformers",
 ]
 
 [[package]]
@@ -4774,7 +4848,7 @@ dependencies = [
  "block",
  "bytemuck",
  "cfg_aliases",
- "core-graphics-types",
+ "core-graphics-types 0.1.3",
  "glow",
  "glutin_wgl_sys",
  "gpu-alloc",
@@ -4784,7 +4858,7 @@ dependencies = [
  "libc",
  "libloading",
  "log",
- "metal",
+ "metal 0.31.0",
  "naga",
  "ndk-sys 0.5.0+25.2.9519653",
  "objc",
@@ -5096,7 +5170,7 @@ dependencies = [
  "calloop 0.13.0",
  "cfg_aliases",
  "concurrent-queue",
- "core-foundation",
+ "core-foundation 0.9.4",
  "core-graphics",
  "cursor-icon",
  "dpi",

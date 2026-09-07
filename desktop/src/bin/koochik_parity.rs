@@ -9,13 +9,19 @@ fn main() -> Result<()> {
     }
     fs::create_dir_all(&a[3])?;
     let inputs = koochik::read_inputs(&a[2].join("step-00/inputs.json"))?;
-    let fixture: DecodeFixture = serde_json::from_slice(&fs::read(a[2].join("decode.json"))?)?;
+    let mut fixture: DecodeFixture = serde_json::from_slice(&fs::read(a[2].join("decode.json"))?)?;
     let step = if a[0].is_dir() {
         gooya_native_desktop::koochik_bundle::prepare(&a[0])?
     } else {
         a[0].clone()
     };
+    if a[0].is_dir() {
+        let manifest: gooya_native_desktop::koochik_bundle::Manifest =
+            serde_json::from_slice(&fs::read(a[0].join("manifest.json"))?)?;
+        fixture.num_steps = manifest.inference_steps;
+    }
     let graph = Graph::load(&step, &inputs)?;
+    let backend = graph.backend();
     let codes = koochik::decode(&graph, inputs, &fixture)?;
     drop(graph);
     let agreement = codes
@@ -36,7 +42,7 @@ fn main() -> Result<()> {
         koochik::write_wav(&a[3].join("processed.wav"), &processed, 24000)?;
     }
     fs::write(a[3].join("codes.json"), serde_json::to_vec(&codes)?)?;
-    let report = serde_json::json!({"runtime":"tract-0.23.4","full_32_step_code_agreement":agreement,"passes_code_gate":agreement>0.98,"samples":audio.len(),"promotion":false});
+    let report = serde_json::json!({"backend":backend,"steps":std::env::var("GOOYA_EXPERIMENTAL_STEPS").unwrap_or_else(|_| fixture.num_steps.to_string()),"fp16_linear":std::env::var_os("GOOYA_EXPERIMENTAL_FP16_LINEAR").is_some(),"runtime":"tract-0.23.4","full_32_step_code_agreement":agreement,"passes_code_gate":agreement>0.98,"samples":audio.len(),"promotion":false});
     fs::write(
         a[3].join("report.json"),
         serde_json::to_vec_pretty(&report)?,

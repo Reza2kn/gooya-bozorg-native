@@ -1,29 +1,30 @@
 {
-  "schema": "gooya.koochik.tract-parity/v1",
+  "schema": "gooya.koochik.tract-parity/v2",
   "source": "Reza2kn/Gooya-Koochik-v2.0-exp",
   "source_revision": "537bb48320fd657415eef5b4fb6796b6cebab195",
   "selected_weights": "merged continuation-200",
   "runtime": "tract 0.23.4 Rust; no Python inference fallback",
   "threshold": 0.98,
-  "comparison": "strictly greater than threshold, per utterance, no aggregate-only pass",
+  "comparison": "Paired source/candidate audio; same recognizer process and decoding; report every utterance and pooled word/character errors.",
   "required_gates": [
-    "uncompressed tract vs source implementation validated first",
-    "exact frontend phoneme agreement on the frozen text suite",
-    "final audio codebook token agreement > 0.98 across the full 32-step decode",
-    "waveform cosine > 0.98 with identical output length and no fitted time warp",
-    "finite nonempty audio and duration deviation < 0.02",
-    "actual compressed artifact smaller than the source BF16 speech weights",
-    "successful native app/server consumer-route smoke"
+    "fixed Shenava binary/model/token hashes and identical decoding settings for both sides",
+    "nonempty source and candidate transcripts for every case",
+    "1 - corpus paired-transcript WER > 0.98 on the complete frozen suite",
+    "report per-case differences and errors against requested text",
+    "finite nonempty audio; report duration changes",
+    "download target about 500 MB or smaller",
+    "successful raw-Persian native consumer route"
   ],
   "diagnostics_not_acceptance": [
-    "logit cosine alone",
-    "graph load alone",
-    "first decode step alone"
+    "exact internal audio-code agreement",
+    "samplewise waveform cosine",
+    "first-step logit similarity"
   ],
-  "sampling": "identical reference, source text, step schedule and explicit noise tensors across source and compressed comparison",
-  "promotion": "blocked until all gates pass",
+  "sampling": "Quantization-only comparisons retain the source 32-step schedule and explicit position noise. Separately identified fast-inference candidates may use 16 or 8 steps; these are tested against the same frozen original recordings, and their changed step count must be reported. The >98% transcript threshold is unchanged.",
+  "promotion": "blocked until the full Shenava suite and native consumer checks pass",
   "canary": "synthetic graph fixtures establish operator compatibility only; not linguistic quality evidence",
   "download_size_target_bytes": 500000000,
   "download_size_note": "Working target after user rejected 1.16 GB. Lossless full-vocabulary bundle is a reference only, not a release candidate.",
-  "metric_clarification": "User asked to clarify speech fidelity versus exact internal-code parity; keep strict existing gate until answered."
+  "acceptance_metric": "1 - corpus WER between candidate and source Shenava transcriptions, strictly > 0.98",
+  "user_clarification": "User explicitly defined parity as transcription parity using Shenava, with optional subjective listening review."
 }

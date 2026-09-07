@@ -13,8 +13,11 @@ fn main() -> Result<()> {
     fs::create_dir_all(&a[2])?;
     let inputs = koochik::read_inputs(&a[1])?;
     let mut m = tract_onnx::onnx().model_for_path(&a[0])?;
-    for (i, t) in inputs.iter().enumerate() {
-        m.set_input_fact(i, InferenceFact::dt_shape(t.datum_type(), t.shape()))?;
+    let dynamic = std::env::var_os("GOOYA_Q4_DYNAMIC").is_some();
+    if !dynamic {
+        for (i, t) in inputs.iter().enumerate() {
+            m.set_input_fact(i, InferenceFact::dt_shape(t.datum_type(), t.shape()))?;
+        }
     }
     let mut m = m.into_typed()?.into_decluttered()?;
     // tract 0.23.4's block transform expects the constant operand in slot zero.
@@ -41,6 +44,9 @@ fn main() -> Result<()> {
     drop(m);
     let bytes = fs::metadata(&path)?.len();
     eprintln!("Serialized Q4 candidate: {bytes} bytes");
+    if std::env::var_os("GOOYA_Q4_EXPORT_ONLY").is_some() {
+        return Ok(());
+    }
     let options = tract_core::runtime::RunOptions {
         executor: Some(tract_linalg::multithread::Executor::multithread(6)),
         ..Default::default()

@@ -1648,6 +1648,7 @@ dependencies = [
  "tokenizers",
  "tract-core",
  "tract-linalg",
+ "tract-nnef",
  "tract-onnx",
  "unicode_categories",
  "zstd",
