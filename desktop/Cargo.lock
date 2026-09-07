@@ -1726,6 +1726,7 @@ dependencies = [
  "eframe",
  "env_logger",
  "ndarray",
+ "objc",
  "ort",
  "serde",
  "serde_json",

@@ -143,6 +143,14 @@
       "word_parity": 0.9701492537313433,
       "word_errors": 2,
       "word_total": 67
+    },
+    {
+      "method": "W6 group32, exact input/output weights, FP32 tract Metal, 24 passes",
+      "bundle_bytes": 503670910,
+      "status": "full Shenava gate passed; consumer verification in progress",
+      "word_parity": 0.9850746268656716,
+      "word_errors": 1,
+      "word_total": 67
     }
   ],
   "download_target_bytes": 500000000,

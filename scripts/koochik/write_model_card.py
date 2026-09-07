@@ -6,6 +6,7 @@ for case in r['results']:
  receipt=json.loads((a.native_cases/case['id']/a.candidate/'report.json').read_text())
  assert receipt['bundle_manifest']['files']==m['files'], 'Evaluated assets differ from release assets'
  assert int(receipt.get('steps',32))==steps, 'Evaluated sampler differs from release sampler'
+ assert receipt.get('backend')=='tract-metal', 'Release gate must use actual native Metal'
  assert not receipt.get('fp16_linear',False), 'Rejected FP16 runtime cannot be promoted'
 m['validated']=True;m['validation']={'metric':r['metric'],'word_parity':r['word_parity'],'word_errors':r['word_errors'],'word_total':r['word_total'],'cases':r['cases'],'scope':'finite twelve-phrase development suite'};(a.bundle/'manifest.json').write_text(json.dumps(m,indent=2));shutil.copy2(a.evaluation,a.bundle/'shenava-parity.json');shutil.copy2(a.recognizer,a.bundle/'shenava-recognizer.json')
 card=f'''---
@@ -34,6 +35,8 @@ tags:
 Use the Koochik integration in [gooya-bozorg-native](https://github.com/Reza2kn/gooya-bozorg-native/pull/2):
 
 ```sh
+git clone --branch codex/gooya-koochik-v2-tract https://github.com/Reza2kn/gooya-bozorg-native.git
+cd gooya-bozorg-native
 cargo build --release --no-default-features --manifest-path desktop/Cargo.toml --bin gooya_koochik
 ./desktop/target/release/gooya_koochik --download ./koochik
 ./desktop/target/release/gooya_koochik ./koochik output.wav 'سلام، حالت چطوره؟'
@@ -45,7 +48,7 @@ The repository is private. The downloader uses `HF_TOKEN` or your existing Huggi
 
 The speech weights use **{compression}**, with a compact text embedding table (3,190 retained rows). Retained rows are selected without changing their original values before quantization. The native frontend accepts spaced ASCII phonemes and rejects unsupported text-token IDs. The weight payload is archived with Zstandard. Codec and frontend weights remain FP32.
 
-Integer weights are dequantized to **FP32 arithmetic in memory**. This is a download-size reduction, not a claim of low-bit activations or a sub-gigabyte RAM footprint. Allow several GB of working RAM. The app retains its last speech and codec plans between requests and displays preparation and generation progress. The frontend compiles its decoder once per phrase.
+Integer weights are dequantized to **FP32 arithmetic in memory**. On Apple Silicon the speech graph runs through native tract Metal; frontend and codec run on CPU. Other platforms have a CPU path, but this release's paired transcription gate was measured on Apple M2 Metal. This is a download-size reduction, not a claim of low-bit activations or a sub-gigabyte RAM footprint. Allow several GB of working RAM. The app retains its last speech and codec plans between requests and displays preparation and generation progress. The frontend compiles its decoder once per phrase.
 
 ## Measured transcription parity
 

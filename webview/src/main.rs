@@ -464,7 +464,7 @@ const HTML: &str = r#"
       <div class="dltitle">مدل هنوز دانلود نشده است</div>
       <div class="dlstatus" id="dlstatus">مدل را یک‌بار برای خوانش آفلاین دریافت کنید. گویا کوچیک به دسترسی حساب Hugging Face شما نیاز دارد.</div>
       <button id="dlbtn" dir="rtl" onclick="dofetch('text')" style="font-size:22px;padding:16px;">گویا بزرگ · حدود ۶۰۰ مگابایت</button>
-      <button id="dlkoochik" onclick="dofetch('koochik')" style="margin-top:12px;">گویا کوچیک · حدود ۳۹۱ مگابایت</button>
+      <button id="dlkoochik" onclick="dofetch('koochik')" style="margin-top:12px;">گویا کوچیک · حدود ۵۰۴ مگابایت</button>
       <button class="ghost" onclick="if(window.__gooyaHasModel){document.getElementById('dl').style.display='none';document.getElementById('composer').style.display='block';}">بازگشت</button>
     </div>
     <div class="foot">اجرای محلی · بدون ارسال متن به اینترنت</div>

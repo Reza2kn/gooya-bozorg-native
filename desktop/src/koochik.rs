@@ -33,7 +33,21 @@ pub fn read_inputs(path: &Path) -> Result<Vec<Tensor>> {
 pub struct Graph {
     plan: std::sync::Arc<TypedRunnableModel>,
 }
+fn wants_metal() -> bool {
+    match std::env::var("GOOYA_KOOCHIK_DEVICE").as_deref() {
+        Ok("metal") => true,
+        Ok("cpu") => false,
+        _ => cfg!(all(target_os = "macos", target_arch = "aarch64")),
+    }
+}
 fn optimize_step(mut model: TypedModel, allow_fp16: bool) -> Result<TypedModel> {
+    if allow_fp16 {
+        if let Ok(device) = std::env::var("GOOYA_KOOCHIK_DEVICE") {
+            ensure!(["cpu", "metal", "auto"].contains(&device.as_str()), "device must be cpu, metal, or auto");
+        }
+        #[cfg(not(target_os = "macos"))]
+        ensure!(!wants_metal(), "Metal is only supported on macOS");
+    }
     if allow_fp16 && std::env::var_os("GOOYA_EXPERIMENTAL_FP16_LINEAR").is_some() {
         // Cast only constant-weight matrix products. Keep graph boundaries,
         // attention scores, normalization and softmax in FP32.
@@ -74,7 +88,7 @@ fn optimize_step(mut model: TypedModel, allow_fp16: bool) -> Result<TypedModel> 
         }
     }
     #[cfg(target_os = "macos")]
-    if allow_fp16 && std::env::var("GOOYA_KOOCHIK_DEVICE").as_deref() == Ok("metal") {
+    if allow_fp16 && wants_metal() {
         use tract_core::transform::ModelTransform;
         tract_metal::MetalTransform::default().transform(&mut model)?;
         let count = model.nodes().iter().filter(|n| n.op.name().starts_with("Metal")).count();
@@ -98,7 +112,7 @@ impl Graph {
             m.set_input_fact(i, InferenceFact::dt_shape(t.datum_type(), t.shape()))?;
         }
         let options = tract_core::runtime::RunOptions {
-            skip_order_opt_ram: std::env::var("GOOYA_KOOCHIK_DEVICE").as_deref() == Ok("metal"),
+            skip_order_opt_ram: wants_metal(),
             executor: Some(tract_linalg::multithread::Executor::multithread(
                 std::env::var("GOOYA_KOOCHIK_THREADS")
                     .ok()
@@ -164,7 +178,7 @@ impl Graph {
             }
         }
         let options = tract_core::runtime::RunOptions {
-            skip_order_opt_ram: std::env::var("GOOYA_KOOCHIK_DEVICE").as_deref() == Ok("metal"),
+            skip_order_opt_ram: wants_metal(),
             executor: Some(tract_linalg::multithread::Executor::multithread(
                 std::env::var("GOOYA_KOOCHIK_THREADS")
                     .ok()
@@ -218,8 +232,13 @@ impl Graph {
         if self.plan.model().nodes().iter().any(|n| n.op.name().starts_with("Metal")) { "tract-metal" } else { "tract-cpu" }
     }
     pub fn run(&self, inputs: &[Tensor]) -> Result<TVec<TValue>> {
-        self.plan
-            .run(inputs.iter().cloned().map(|x| x.into_tvalue()).collect())
+        let run = || self.plan.run(inputs.iter().cloned().map(|x| x.into_tvalue()).collect());
+        // Rust worker threads have no Cocoa event-loop pool. Metal command
+        // buffers otherwise retain temporary resources across diffusion passes.
+        #[cfg(target_os = "macos")]
+        { objc::rc::autoreleasepool(run) }
+        #[cfg(not(target_os = "macos"))]
+        { run() }
     }
 }
 pub fn default_steps() -> usize {

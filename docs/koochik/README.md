@@ -1,14 +1,12 @@
-# Gooya Koochik v2.0-exp in Rust
+# Gooya Koochik v2.0-exp in native Rust
 
-A separate OmniVoice engine alongside Gooya Bozorg 1.5. Raw Persian text passes
-through Negara v7.1, 32-step speech generation and the codec decoder, all in
-Rust with tract 0.23.4. No Python or ONNX Runtime participates in Koochik inference.
+The integration accepts raw Persian text, runs Negara v7.1, generates audio codes with OmniVoice, and decodes them to 24 kHz WAV. Apple Silicon uses tract Metal by default; other platforms use tract CPU. Koochik does not use ONNX Runtime or Python for inference.
 
-Source: the merged listener-selected continuation-200 release,
-`Reza2kn/Gooya-Koochik-v2.0-exp` at
-`537bb48320fd657415eef5b4fb6796b6cebab195`.
+**Release validation is in progress.** The current candidate is 503,670,910 bytes: grouped 6-bit transformer weights, unchanged text/audio embeddings and output heads, and FP32 arithmetic. Earlier candidates and their failures are retained in `quantization-status.json`. Nothing is promoted until the full Shenava gate and the actual native consumer checks pass.
 
-## Run
+## Load and test
+
+Once the private derivative is published, authenticate with Hugging Face and use:
 
 ```sh
 cargo build --release --no-default-features --manifest-path desktop/Cargo.toml --bin gooya_koochik
@@ -16,86 +14,44 @@ cargo build --release --no-default-features --manifest-path desktop/Cargo.toml -
 ./desktop/target/release/gooya_koochik ./koochik output.wav 'سلام، حالت چطوره؟'
 ```
 
-The private HF repository is `Reza2kn/Gooya-Koochik-v2.0-exp-tract`.
-The downloader uses `HF_TOKEN` or the standard Hugging Face token cache,
-resolves an immutable commit, and verifies asset checksums. Release availability
-is contingent on completing the Shenava gate described below.
+The downloader reads `HF_TOKEN` or the standard Hugging Face token cache, resolves an immutable commit, verifies every asset checksum, and expands the weight cache. The app provides a Koochik download button and model picker. `GOOYA_KOOCHIK_MODEL_DIR` points to an existing bundle.
 
-The desktop app has a Koochik download button and model picker. Existing bundles
-can be selected with `GOOYA_KOOCHIK_MODEL_DIR`, or installed at `koochik-v2` in
-the application data directory. Bozorg remains available independently.
+## Runtime
 
-## Size and runtime
+Weights are quantized for download storage and dequantized to FP32 arithmetic. This is not low-bit activation inference or a sub-gigabyte RAM claim. The compact vocabulary keeps 3,190 text embedding rows. Unsupported text-token IDs are rejected.
 
-The compact bundle is 391,072,386 bytes before the small card and evaluation
-receipts. Speech matrix weights use native tract Q4_0 in an NNEF graph archived
-with Zstandard. Text embeddings are restricted to 3,190 supported rows, with
-retained values unchanged. Unsupported text token IDs fail explicitly.
-Frontend and codec weights remain FP32.
+`GOOYA_KOOCHIK_DEVICE=cpu` explicitly selects CPU; `metal` explicitly selects native Metal on macOS. Backend and generation timing are recorded in the output report. The Metal transform preserves FP32 precision and reports its actual Metal operator count. The frontend and codec remain on CPU.
 
-The default CPU path unpacks the Q4 matrix weights to FP32 in memory to use
-faster whole-sequence matrix kernels. This preserves the small download but
-requires several GB of RAM; it is not four-bit activation arithmetic. The
-packed Q4 path also runs, but was slower on the tested Mac. Packed and unpacked
-Q4 paths produced identical final audio codes on the initial canary.
+The phonemizer compiles its ByT5 decoder once per phrase. A tract 0.23.4 `FoldUniformMask` bug incorrectly removed the five-beam broadcast dimension, so that one optimization pass is disabled for the dynamic decoder. All twelve sealed frontend, duration and conditioning comparisons pass exactly (`dynamic-g2p-results.json`).
 
-The bundle plus decompressed NNEF cache takes about 0.7 GB disk. The superseded
-1.16 GB lossless FP32 bundle is retained only as a local reference.
+The app retains its last speech and codec plans between requests, checks asset metadata to invalidate changed bundles, and shows preparation and per-pass progress. Changed input lengths specialize a fresh plan. Only the last shape is retained to bound memory.
 
-## Acceptance metric
+## Acceptance
 
-The user clarified that **>98% parity means transcription parity using Shenava**.
-`PARITY_CONTRACT.json` records this contract. The primary score is
-`1 - corpus WER` between Shenava transcripts of paired source and compressed
-outputs. Both sides use the same recognizer, decoder, normalization and explicit
-sampling noise. Expected text and hotwords are never supplied to the recognizer.
-Every per-phrase transcript difference and error against the requested text is
-retained. Empty transcripts fail the gate.
+The user defined parity as **Shenava transcription parity**, with optional listening review. See `PARITY_CONTRACT.json` and the frozen `parity-suite.json`.
 
-`parity-suite.json` freezes twelve Persian phrases and their hashes. This is a
-finite development test, not a guarantee of 98% perceived quality or accuracy
-on unseen text. Subjective pronunciation, voice and prosody review complements
-this transcript metric.
+- Compare source and candidate recordings using the same Shenava process, model, token files, decoder and normalization.
+- Send neither expected text nor hotwords to the recognizer.
+- Require `1 - corpus paired-transcript WER > 0.98` across all twelve phrases, with nonempty transcripts.
+- Retain every difference, including cases where the candidate matches the requested text better.
+- Also report each side's errors against the requested text, audio duration, and actual native runtime.
+- Internal audio-code equality and waveform cosine are diagnostics, not this acceptance gate.
 
-Exact internal-code agreement and samplewise waveform cosine are diagnostics,
-not the release gate. Earlier INT8/Q4 numerical-screen failures therefore do
-not establish poor speech fidelity. See `quantization-status.json` for history.
+Source recordings use the merged continuation-200 checkpoint loaded in PyTorch FP32, pinned at `537bb48320fd657415eef5b4fb6796b6cebab195`. The original lossless Rust CPU implementation independently matched every final code on all twelve cases (`baseline-results.json`).
 
-The FP32 native baseline independently passed all twelve source comparisons
-with 100% final audio-code agreement and raw-waveform cosine above 0.99999999.
-A fresh lossless load matched the processed source waveform above 0.99999996.
-All twelve native frontend/duration/conditioning tensor checks matched exactly.
-See `baseline-results.json`.
+Sampling experiments at 16 or 24 passes are compared to the same 32-pass original recordings. Their changed step count is reported; the transcript threshold is unchanged. GPU screening with `screen_mps.py` is never sufficient for acceptance: candidates must pass through actual native tract.
 
-## Reproduction
+This is a finite development suite, not a guarantee of equivalent perceived quality or unseen-text accuracy. Default-voice short phrases are supported; custom reference input and long-form internal chunking are not yet implemented. Phrases estimated above ten seconds must be split. Native SplitMix64 seed 43 is not PyTorch seed 43.
 
-Python scripts under `scripts/koochik` are development/export/evaluation tools,
-not runtime dependencies. Export used PyTorch 2.11.0, Transformers 5.16.1,
-ONNX and the original OmniVoice implementation at commit
-`08be0b4ccbac3e13e374e86fbfead4b4cac343e2`.
+## Reproduction tools
 
-- `prune_vocabulary.py`: retain supported text embeddings and an ID map.
-- `koochik_q4_probe`: native Q4 export and serialized/reloaded evaluation.
-  `GOOYA_Q4_DYNAMIC=1 GOOYA_Q4_EXPORT_ONLY=1` exports a general-length graph.
-- `package_q4.py`: assemble the one-model native bundle.
-- `run_native_suite.py`: replay all 32 generation steps with source noise.
-- `watch_shenava_suite.py`: transcribe each source/candidate pair as it completes.
-- `write_model_card.py`: require the complete Shenava gate before writing release metadata.
+- `capture_reference.py`, `capture_suite.py`: source audio and explicit sampling noise.
+- `export_step.py`, `export_frontend.py`, `export_codec.py`: portable graphs.
+- `prune_vocabulary.py`: compact text embeddings without remapping valid token identities.
+- `compress_weights.py`, `package_grouped.py`: grouped weight storage and checked bundles.
+- `koochik_parity`, `run_native_suite.py`: full native generation with captured noise.
+- `shenava_parity.py`, `watch_shenava_suite.py`: normalized paired transcripts and persistent receipts.
+- `koochik_benchmark`: fixed-input timing and output hashes, separate from speech acceptance.
+- `write_model_card.py`: verifies full-suite success, evaluated asset identities and sampler settings before promotion.
 
-## Current scope
-
-Default synthetic voice, 24 kHz mono, 32 steps and speed 0.85. Sentence boundaries
-split generation and insert 350 ms gaps. Phrases estimated above ten seconds
-are rejected and should be split. Custom reference recording/voice cloning and
-long-form internal model chunking are not implemented.
-
-The app's seed 43 uses portable SplitMix64 noise; it is not equivalent to
-PyTorch seed 43. Controlled evaluation replays identical explicit noise tensors.
-
-### Runtime optimization experiments
-
-The production frontend now compiles the ByT5 decoder once per phrase, specializing the source length while retaining a dynamic target length. The tract 0.23.4 `FoldUniformMask` pass is disabled for that graph because it incorrectly removes the five-beam broadcast dimension. All 12 sealed frontend/conditioning comparisons pass exactly; see `dynamic-g2p-results.json`.
-
-The app retains the last speech and codec plans between requests and reports preparation and diffusion progress. Q4 NNEF loading specializes symbolic input dimensions before optimization.
-
-`GOOYA_EXPERIMENTAL_FP16_LINEAR=1` is a rejected experiment: its first paired transcript differed at one of three words. It is never the default. `GOOYA_EXPERIMENTAL_STEPS=16` or `8` evaluates fewer diffusion passes against the original recordings, separately from quantization-only parity. `GOOYA_KOOCHIK_THREADS` controls the thread-count timing probe. No experimental setting is promoted based on speed alone.
+The rejected FP16 linear experiment remains opt-in for reproducibility (`GOOYA_EXPERIMENTAL_FP16_LINEAR=1`). `GOOYA_EXPERIMENTAL_STEPS` overrides the manifest's pass count for research; ordinary loading uses the manifest. `GOOYA_KOOCHIK_THREADS` controls CPU thread experiments. No experimental setting is promoted on speed alone.

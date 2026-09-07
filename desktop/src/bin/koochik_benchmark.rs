@@ -14,7 +14,7 @@ fn main() -> Result<()> {
     let load_seconds = start.elapsed().as_secs_f64();
     let mut runs = vec![];
     let mut hashes = vec![];
-    for _ in 0..4 {
+    for _ in 0..std::env::var("GOOYA_BENCH_RUNS").ok().and_then(|v| v.parse::<usize>().ok()).unwrap_or(4) {
         let start = Instant::now();
         let output = graph.run(&inputs)?;
         ensure!(output.len() == 1, "unexpected output count");

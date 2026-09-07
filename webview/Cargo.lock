@@ -1641,6 +1641,7 @@ dependencies = [
  "anyhow",
  "env_logger",
  "ndarray",
+ "objc",
  "ort",
  "serde",
  "serde_json",
@@ -1648,6 +1649,7 @@ dependencies = [
  "tokenizers",
  "tract-core",
  "tract-linalg",
+ "tract-metal",
  "tract-nnef",
  "tract-onnx",
  "unicode_categories",
@@ -2264,6 +2266,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "488016bfae457b036d996092f6cb448677611ce4449e970ceaf42695203f218a"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "metal"
+version = "0.33.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c7047791b5bc903b8cd963014b355f71dc9864a9a0b727057676c1dcae5cbc15"
+dependencies = [
+ "bitflags 2.13.1",
+ "block",
+ "core-graphics-types",
+ "foreign-types",
+ "log",
+ "objc",
+ "paste",
 ]
 
 [[package]]
@@ -4072,6 +4089,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "tract-gpu"
+version = "0.23.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "210248491975257dfff5a405afdedce95cc879ad6361e617ec76a0ae248382df"
+dependencies = [
+ "anyhow",
+ "derive-new",
+ "downcast-rs 2.0.2",
+ "dyn-eq",
+ "dyn-hash",
+ "num-traits",
+ "tract-core",
+ "tract-pulse-opl",
+ "tract-transformers",
+]
+
+[[package]]
 name = "tract-hir"
 version = "0.23.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4105,6 +4139,26 @@ dependencies = [
  "scan_fmt",
  "tract-data",
  "walkdir",
+]
+
+[[package]]
+name = "tract-metal"
+version = "0.23.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8dcf723c4485e260ee3c4b359e3a65d0b0af97f8c686476008e6126aa7c96f53"
+dependencies = [
+ "anyhow",
+ "derive-new",
+ "downcast-rs 2.0.2",
+ "inventory",
+ "log",
+ "metal",
+ "num-traits",
+ "objc",
+ "tract-core",
+ "tract-gpu",
+ "tract-pulse-opl",
+ "tract-transformers",
 ]
 
 [[package]]

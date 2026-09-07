@@ -40,6 +40,7 @@ pub struct Voice {
 #[derive(Serialize)]
 pub struct Report {
     pub model: &'static str,
+    pub backend: &'static str,
     pub samples: usize,
     pub duration_seconds: f64,
     pub wav_path: PathBuf,
@@ -509,6 +510,7 @@ impl Engine {
             wall_seconds: 0.,
             generation_seconds,
             loaded_speech_graph,
+            backend: self.graph.as_ref().unwrap().1.backend(),
             model: "Gooya Koochik v2.0-exp",
             samples: audio.len(),
             duration_seconds: audio.len() as f64 / 24000.,
