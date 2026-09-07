@@ -48,11 +48,24 @@ fn optimize_step(mut model: TypedModel, allow_fp16: bool) -> Result<TypedModel> 
         #[cfg(not(target_os = "macos"))]
         ensure!(!wants_metal(), "Metal is only supported on macOS");
     }
-    if allow_fp16 && std::env::var_os("GOOYA_EXPERIMENTAL_FP16_LINEAR").is_some() {
+    let precision = std::env::var("GOOYA_EXPERIMENTAL_FP16_SCOPE").unwrap_or_else(|_| {
+        if std::env::var_os("GOOYA_EXPERIMENTAL_FP16_LINEAR").is_some() { "all".into() } else { "none".into() }
+    });
+    ensure!(["none", "mlp", "attention", "trunk", "all"].contains(&precision.as_str()), "invalid FP16 scope");
+    let mut converted = 0usize;
+    if allow_fp16 && precision != "none" {
         // Cast only constant-weight matrix products. Keep graph boundaries,
         // attention scores, normalization and softmax in FP32.
         for id in model.eval_order()? {
             let node = model.node(id);
+            let selected = match precision.as_str() {
+                "mlp" => node.name.contains("/mlp/"),
+                "attention" => node.name.contains("/self_attn/"),
+                "trunk" => node.name.contains("/llm/layers."),
+                "all" => true,
+                _ => false,
+            };
+            if !selected { continue; }
             if let Some(op) = node.op_as::<tract_core::ops::einsum::EinSum>() {
                 if op.operating_dt != DatumType::F32
                     || !node
@@ -84,8 +97,11 @@ fn optimize_step(mut model: TypedModel, allow_fp16: bool) -> Result<TypedModel> 
                 )?;
                 patch.shunt_outside(&model, node.id.into(), output[0])?;
                 patch.apply(&mut model)?;
+                converted += 1;
             }
         }
+        ensure!(converted > 0, "FP16 scope matched no constant-weight matrix products");
+        eprintln!("Koochik experimental FP16 scope={precision}: {converted} matrix products");
     }
     #[cfg(target_os = "macos")]
     if allow_fp16 && wants_metal() {
@@ -95,7 +111,7 @@ fn optimize_step(mut model: TypedModel, allow_fp16: bool) -> Result<TypedModel> 
         transform.transform(&mut model)?;
         let count = model.nodes().iter().filter(|n| n.op.name().starts_with("Metal")).count();
         ensure!(count > 0, "Metal requested but no Metal operators were created");
-        eprintln!("Koochik backend: tract-metal, {count} Metal operators; FP32 arithmetic");
+        eprintln!("Koochik backend: tract-metal, {count} Metal operators; FP16 matrix products={converted}");
     }
     Ok(model.into_optimized()?)
 }

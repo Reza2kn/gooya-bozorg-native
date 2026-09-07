@@ -65,3 +65,16 @@ The rejected FP16 linear experiment remains opt-in for reproducibility (`GOOYA_E
 For the same FP32 inputs, the default MLX kernel produced the same output SHA before and after experimentation. Warm pass timings were 0.69–0.77 seconds initially and 0.96–1.18 seconds in the later control, showing run-to-run variability. MFA took 1.32–3.45 seconds and GGML 1.46–2.48 seconds. Neither improved speed; both changed numerical outputs, so neither was adopted or passed onward to the full speech gate. Production behavior and the accepted sampler remain unchanged.
 
 `GOOYA_PROFILE_OPS=/path/to/ops.json` records host dispatch/wait times for the last graph run. `GOOYA_EXPERIMENTAL_METAL_GEMM=mfa|ggml|mlx` selects a research kernel. Leave both unset for ordinary use. These switches do not establish quality acceptance. Further speed work needs a materially different compute path or a separately validated lower-precision/fewer-pass model; this profiling pass found no safe kernel-switch speedup.
+
+## Core ML investigation
+
+The user clarified an Apple Core ML preference. The existing tract backend's `MetalMlxGemm` names a matrix kernel; it does not run the MLX framework. Core ML is being evaluated as a separate Apple-specific backend and is not yet wired into the Koochik app.
+
+A fixed sequence-length 350 Core ML package was converted from the accepted grouped weights, reconstructing the exact stored weight values and compact embedding lookup in PyTorch. Core ML Tools 9.0 required NumPy 2.2.6 to avoid its scalar-cast incompatibility with NumPy 2.5.3; Torch 2.11 is outside its advertised tested range. Export and actual package inference succeeded. These packages are canaries, not general-input releases.
+
+- FP16: warm fixed-input passes 0.154–0.159 seconds; compute plan prefers Neural Engine for 1,921 operations, CPU for 19 (1,899 constants/other entries have no reported device). This is planned placement, not a hardware execution trace. Full 24-pass generation took 5.25 seconds, excluding 28.43 seconds of package loading and frontend/codec. Shenava heard `سلام هت چطوره` instead of `سلام حالت چطوره`: failed canary. Speech package alone is 922 MB before additional compression.
+- FP32: warm fixed-input passes 0.57–1.91 seconds, GPU placement, 1.84 GB package. No material consistent speed win established; complete speech quality not evaluated.
+- FP16 with FP32 output-head/logit operations: complete generation 8.49 seconds, excluding 59.97 seconds of initial loading; same failed pronunciation. Not promoted.
+- Selective tract transformer FP16: 196 matrix products changed; staged speech test rejected after two word differences in the first three tested cases. This already exceeds the one-difference allowance in the frozen 67-word suite. See `precision-trunk-screen.json`.
+
+Core ML timings use its real native prediction API via Python. Speech screening uses the source Python sampler and ORT CPU codec; it is not Rust consumer acceptance. No Core ML artifact has passed the full twelve-clip gate or been published. The accepted 504 MB tract model remains the app default. Reproduction tools are `coreml_canary.py`, `coreml_benchmark.py`, `coreml_speech_canary.py`, and `precision_canary.py`. `GOOYA_EXPERIMENTAL_FP16_SCOPE` supports `mlp`, `attention`, `trunk`, and `all`; leave it unset for accepted inference.

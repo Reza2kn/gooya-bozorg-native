@@ -27,7 +27,7 @@ fn main() -> Result<()> {
     }
     println!(
         "{}",
-        serde_json::json!({"backend":graph.backend(),"output_sha256":hashes,"load_seconds":load_seconds,"run_seconds":runs,"threads":std::env::var("GOOYA_KOOCHIK_THREADS").unwrap_or("6".into()),"fp16_linear":std::env::var_os("GOOYA_EXPERIMENTAL_FP16_LINEAR").is_some()})
+        serde_json::json!({"backend":graph.backend(),"output_sha256":hashes,"load_seconds":load_seconds,"run_seconds":runs,"threads":std::env::var("GOOYA_KOOCHIK_THREADS").unwrap_or("6".into()),"fp16_scope":std::env::var("GOOYA_EXPERIMENTAL_FP16_SCOPE").unwrap_or_else(|_| "none".into()),"fp16_linear":std::env::var_os("GOOYA_EXPERIMENTAL_FP16_LINEAR").is_some()})
     );
     Ok(())
 }

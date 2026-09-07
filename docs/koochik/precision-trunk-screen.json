@@ -1,0 +1,170 @@
+{
+  "scope": "trunk",
+  "cases": 3,
+  "full_suite_cases": 12,
+  "word_errors": 2,
+  "word_total": 15,
+  "passes": false,
+  "results": [
+    {
+      "id": "case-00",
+      "requested_text": "سلام، حالت چطوره؟",
+      "wall_seconds": 57.49522487493232,
+      "scope": "trunk",
+      "binary_sha256": "ca418f3d7c92cb8a6ca9f241966c1800134382b66f07359fdce4250dccfed1c7",
+      "native_report": {
+        "backend": "tract-metal",
+        "fp16_linear": false,
+        "fp16_scope": "trunk",
+        "full_32_step_code_agreement": 0.2426470588235294,
+        "passes_code_gate": false,
+        "promotion": false,
+        "runtime": "tract-0.23.4",
+        "samples": 48960,
+        "steps": "24"
+      },
+      "source": {
+        "audio_sha256": "c29460ef37404361cda71fe354bd23b8142560a280458b68dc7255b5e64e5ac7",
+        "response": {
+          "text": "سلام حالت چطوره؟",
+          "greedy": "سلام حالت چطوره؟",
+          "elapsed_ms": 827,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "سلام حالت چطوره؟",
+        "normalized_transcript": "سلام حالت چطوره",
+        "elapsed_seconds": 0.8999027078971267
+      },
+      "candidate": {
+        "audio_sha256": "63d863fd651e7a1c23cd9816ceb050d6d1908cc3343d207137e0fe7fd744e79e",
+        "response": {
+          "text": "سلام حالت چطوره؟",
+          "greedy": "سلام حالت چطوره؟",
+          "elapsed_ms": 777,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "سلام حالت چطوره؟",
+        "normalized_transcript": "سلام حالت چطوره",
+        "elapsed_seconds": 0.7952627919148654
+      },
+      "word_errors": 0,
+      "word_total": 3,
+      "source_vs_requested_word_errors": 0,
+      "candidate_vs_requested_word_errors": 0,
+      "nonempty": true
+    },
+    {
+      "id": "case-09",
+      "requested_text": "نه، من اینو نگفتم.",
+      "wall_seconds": 64.71364320791326,
+      "scope": "trunk",
+      "binary_sha256": "ca418f3d7c92cb8a6ca9f241966c1800134382b66f07359fdce4250dccfed1c7",
+      "native_report": {
+        "backend": "tract-metal",
+        "fp16_linear": false,
+        "fp16_scope": "trunk",
+        "full_32_step_code_agreement": 0.08088235294117647,
+        "passes_code_gate": false,
+        "promotion": false,
+        "runtime": "tract-0.23.4",
+        "samples": 48960,
+        "steps": "24"
+      },
+      "source": {
+        "audio_sha256": "09e3d2f3594296a9d81412ae6db159d04483b975dae6b3a4e6078668494ae354",
+        "response": {
+          "text": "من اینو نگفتم",
+          "greedy": "من اینو نگفتم",
+          "elapsed_ms": 808,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "من اینو نگفتم",
+        "normalized_transcript": "من اینو نگفتم",
+        "elapsed_seconds": 0.9282690829131752
+      },
+      "candidate": {
+        "audio_sha256": "f5313fc27080292079a688cc3562c401ee7f82aa50505bf6b1018917427d92c4",
+        "response": {
+          "text": "نو من اینو نگفتم",
+          "greedy": "نو من اینو نگفتم",
+          "elapsed_ms": 782,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "نو من اینو نگفتم",
+        "normalized_transcript": "نو من اینو نگفتم",
+        "elapsed_seconds": 0.8717255410738289
+      },
+      "word_errors": 1,
+      "word_total": 3,
+      "source_vs_requested_word_errors": 1,
+      "candidate_vs_requested_word_errors": 1,
+      "nonempty": true
+    },
+    {
+      "id": "case-10",
+      "requested_text": "اول فایل رو ذخیره کن، بعد پنجره رو ببند.",
+      "wall_seconds": 94.93985233292915,
+      "scope": "trunk",
+      "binary_sha256": "ca418f3d7c92cb8a6ca9f241966c1800134382b66f07359fdce4250dccfed1c7",
+      "native_report": {
+        "backend": "tract-metal",
+        "fp16_linear": false,
+        "fp16_scope": "trunk",
+        "full_32_step_code_agreement": 0.12635869565217392,
+        "passes_code_gate": false,
+        "promotion": false,
+        "runtime": "tract-0.23.4",
+        "samples": 88320,
+        "steps": "24"
+      },
+      "source": {
+        "audio_sha256": "9ddfbe883cdf4eddcac939194836b9d9999a81122725a2c79e364a04a866a71d",
+        "response": {
+          "text": "اول فایل رو ذخیره کن بت پنجره رو ببند.",
+          "greedy": "اول فایل رو ذخیره کن بت پنجره رو ببند.",
+          "elapsed_ms": 817,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "اول فایل رو ذخیره کن بت پنجره رو ببند.",
+        "normalized_transcript": "اول فایل رو ذخیره کن بت پنجره رو ببند",
+        "elapsed_seconds": 0.8459631248842925
+      },
+      "candidate": {
+        "audio_sha256": "dfcfd3460e8dcafe20f711ce67c2a011732c5c2fa1837aad621c65b828ea7f91",
+        "response": {
+          "text": "اول فایل رو ذخیره کرد بت پنجره رو ببند.",
+          "greedy": "اول فایل رو ذخیره کرد بت پنجره رو ببند.",
+          "elapsed_ms": 825,
+          "backend": "gpu-or-cpu",
+          "decoder": "greedy",
+          "version": "0.1.1",
+          "decoder_revision": "sentencepiece-v2"
+        },
+        "raw_transcript": "اول فایل رو ذخیره کرد بت پنجره رو ببند.",
+        "normalized_transcript": "اول فایل رو ذخیره کرد بت پنجره رو ببند",
+        "elapsed_seconds": 0.8524329590145499
+      },
+      "word_errors": 1,
+      "word_total": 9,
+      "source_vs_requested_word_errors": 1,
+      "candidate_vs_requested_word_errors": 2,
+      "nonempty": true
+    }
+  ],
+  "decision": "reject: already exceeds full-suite allowance of one difference in 67 words"
+}
