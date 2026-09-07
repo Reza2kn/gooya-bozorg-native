@@ -90,7 +90,9 @@ fn optimize_step(mut model: TypedModel, allow_fp16: bool) -> Result<TypedModel> 
     #[cfg(target_os = "macos")]
     if allow_fp16 && wants_metal() {
         use tract_core::transform::ModelTransform;
-        tract_metal::MetalTransform::default().transform(&mut model)?;
+        let transform: tract_metal::MetalTransform = std::env::var("GOOYA_EXPERIMENTAL_METAL_GEMM")
+            .unwrap_or_default().parse()?;
+        transform.transform(&mut model)?;
         let count = model.nodes().iter().filter(|n| n.op.name().starts_with("Metal")).count();
         ensure!(count > 0, "Metal requested but no Metal operators were created");
         eprintln!("Koochik backend: tract-metal, {count} Metal operators; FP32 arithmetic");
@@ -232,7 +234,23 @@ impl Graph {
         if self.plan.model().nodes().iter().any(|n| n.op.name().starts_with("Metal")) { "tract-metal" } else { "tract-cpu" }
     }
     pub fn run(&self, inputs: &[Tensor]) -> Result<TVec<TValue>> {
-        let run = || self.plan.run(inputs.iter().cloned().map(|x| x.into_tvalue()).collect());
+        let run = || {
+            let values = inputs.iter().cloned().map(|x| x.into_tvalue()).collect();
+            if let Some(path) = std::env::var_os("GOOYA_PROFILE_OPS") {
+                let mut state = tract_core::plan::SimpleState::new(&self.plan)?;
+                let mut rows = Vec::new();
+                let outputs = state.run_plan_with_eval(values, |session, state, node, values| {
+                    let start = Instant::now();
+                    let result = tract_core::plan::eval(session, state, node, values);
+                    rows.push(serde_json::json!({"name":node.name,"op":node.op.name(),"host_seconds":start.elapsed().as_secs_f64()}));
+                    result
+                })?;
+                fs::write(path, serde_json::to_vec_pretty(&rows)?)?;
+                Ok(outputs)
+            } else {
+                self.plan.run(values)
+            }
+        };
         // Rust worker threads have no Cocoa event-loop pool. Metal command
         // buffers otherwise retain temporary resources across diffusion passes.
         #[cfg(target_os = "macos")]

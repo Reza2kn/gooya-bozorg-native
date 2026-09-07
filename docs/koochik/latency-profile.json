@@ -1,0 +1,176 @@
+{
+  "note": "Host dispatch timing; asynchronous GPU execution is charged to the final ToHost wait. Not per-kernel GPU timing.",
+  "operations": {
+    "DeviceSyncToHost": {
+      "count": 1,
+      "host_seconds": 0.746568417
+    },
+    "MetalMlxGemm": {
+      "count": 254,
+      "host_seconds": 0.003961755000000001
+    },
+    "MetalMul": {
+      "count": 281,
+      "host_seconds": 0.0036981250000000005
+    },
+    "MetalAdd": {
+      "count": 140,
+      "host_seconds": 0.001948571
+    },
+    "GpuMoveAxis": {
+      "count": 113,
+      "host_seconds": 0.0017586210000000006
+    },
+    "MetalRmsNorm": {
+      "count": 113,
+      "host_seconds": 0.0016210410000000006
+    },
+    "GpuSlice": {
+      "count": 112,
+      "host_seconds": 0.0013372040000000003
+    },
+    "Mul": {
+      "count": 1,
+      "host_seconds": 0.000806959
+    },
+    "GpuConcat": {
+      "count": 57,
+      "host_seconds": 0.0007608339999999998
+    },
+    "MetalNeg": {
+      "count": 56,
+      "host_seconds": 0.0006047909999999998
+    },
+    "MetalSilu": {
+      "count": 28,
+      "host_seconds": 0.000344505
+    },
+    "MetalSoftmax": {
+      "count": 28,
+      "host_seconds": 0.0003045860000000001
+    },
+    "DeviceSyncToDevice": {
+      "count": 5,
+      "host_seconds": 8.5208e-05
+    },
+    "Cast": {
+      "count": 3,
+      "host_seconds": 7.8625e-05
+    },
+    "Add": {
+      "count": 1,
+      "host_seconds": 7.7583e-05
+    },
+    "MetalGather": {
+      "count": 2,
+      "host_seconds": 7.0708e-05
+    },
+    "Gather": {
+      "count": 2,
+      "host_seconds": 3.6459e-05
+    },
+    "MetalIff": {
+      "count": 1,
+      "host_seconds": 2.0625e-05
+    },
+    "MetalReduce<Sum>": {
+      "count": 1,
+      "host_seconds": 1.9458e-05
+    },
+    "MetalCos": {
+      "count": 1,
+      "host_seconds": 1.1708e-05
+    },
+    "MetalCast": {
+      "count": 1,
+      "host_seconds": 1.1041e-05
+    },
+    "MetalSin": {
+      "count": 1,
+      "host_seconds": 8.791e-06
+    },
+    "Source": {
+      "count": 4,
+      "host_seconds": 5.292e-06
+    },
+    "IntoShape": {
+      "count": 1,
+      "host_seconds": 1.334e-06
+    }
+  },
+  "benchmark": {
+    "backend": "tract-metal",
+    "fp16_linear": false,
+    "load_seconds": 27.80616875,
+    "output_sha256": [
+      "4fd8577643bbe243c30feb8fb5cce8937d58106c9406378175a4c77b78045cee",
+      "4fd8577643bbe243c30feb8fb5cce8937d58106c9406378175a4c77b78045cee",
+      "4fd8577643bbe243c30feb8fb5cce8937d58106c9406378175a4c77b78045cee",
+      "4fd8577643bbe243c30feb8fb5cce8937d58106c9406378175a4c77b78045cee"
+    ],
+    "run_seconds": [
+      0.9635875,
+      0.690833083,
+      0.710064375,
+      0.765443375
+    ],
+    "threads": "6"
+  },
+  "kernel_trials": {
+    "mfa": {
+      "backend": "tract-metal",
+      "fp16_linear": false,
+      "load_seconds": 21.450182625,
+      "output_sha256": [
+        "c23df5c3af011af4267c3a2c1756dcd831828519ee51bbd525ff376478e3f4cc",
+        "c23df5c3af011af4267c3a2c1756dcd831828519ee51bbd525ff376478e3f4cc",
+        "c23df5c3af011af4267c3a2c1756dcd831828519ee51bbd525ff376478e3f4cc",
+        "c23df5c3af011af4267c3a2c1756dcd831828519ee51bbd525ff376478e3f4cc"
+      ],
+      "run_seconds": [
+        1.6662712499999999,
+        1.315264917,
+        2.012040959,
+        3.449365584
+      ],
+      "threads": "6"
+    },
+    "ggml": {
+      "backend": "tract-metal",
+      "fp16_linear": false,
+      "load_seconds": 18.659529541,
+      "output_sha256": [
+        "3c7e65ab3ede2692ad9c26db51c88aadbaff6dbae290a05da41d514333c4bde9",
+        "3c7e65ab3ede2692ad9c26db51c88aadbaff6dbae290a05da41d514333c4bde9",
+        "3c7e65ab3ede2692ad9c26db51c88aadbaff6dbae290a05da41d514333c4bde9",
+        "3c7e65ab3ede2692ad9c26db51c88aadbaff6dbae290a05da41d514333c4bde9"
+      ],
+      "run_seconds": [
+        1.926006541,
+        1.456599833,
+        2.267825209,
+        2.482702125
+      ],
+      "threads": "6"
+    },
+    "control": {
+      "backend": "tract-metal",
+      "fp16_linear": false,
+      "load_seconds": 15.703114833,
+      "output_sha256": [
+        "4fd8577643bbe243c30feb8fb5cce8937d58106c9406378175a4c77b78045cee",
+        "4fd8577643bbe243c30feb8fb5cce8937d58106c9406378175a4c77b78045cee",
+        "4fd8577643bbe243c30feb8fb5cce8937d58106c9406378175a4c77b78045cee",
+        "4fd8577643bbe243c30feb8fb5cce8937d58106c9406378175a4c77b78045cee"
+      ],
+      "run_seconds": [
+        0.988794542,
+        0.9616425,
+        1.184318,
+        1.066984417
+      ],
+      "threads": "6"
+    }
+  },
+  "decision": "Keep default MLX kernels. Alternatives are slower and numerically different; no full speech gate run for rejected speed candidates."
+}

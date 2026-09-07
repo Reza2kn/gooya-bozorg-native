@@ -57,3 +57,11 @@ This is a finite development suite, not a guarantee of equivalent perceived qual
 - `write_model_card.py`: verifies full-suite success, evaluated asset identities and sampler settings before promotion.
 
 The rejected FP16 linear experiment remains opt-in for reproducibility (`GOOYA_EXPERIMENTAL_FP16_LINEAR=1`). `GOOYA_EXPERIMENTAL_STEPS` overrides the manifest's pass count for research; ordinary loading uses the manifest. `GOOYA_KOOCHIK_THREADS` controls CPU thread experiments. No experimental setting is promoted on speed alone.
+
+## Kernel profiling
+
+`latency-profile.json` records the fixed-input investigation. The speech graph has one device-to-host synchronization per pass. Host dispatch took roughly 0.02 seconds; the final synchronization waited about 0.75 seconds for queued GPU work. This does not attribute that time to the transfer itself or measure individual GPU kernels.
+
+For the same FP32 inputs, the default MLX kernel produced the same output SHA before and after experimentation. Warm pass timings were 0.69–0.77 seconds initially and 0.96–1.18 seconds in the later control, showing run-to-run variability. MFA took 1.32–3.45 seconds and GGML 1.46–2.48 seconds. Neither improved speed; both changed numerical outputs, so neither was adopted or passed onward to the full speech gate. Production behavior and the accepted sampler remain unchanged.
+
+`GOOYA_PROFILE_OPS=/path/to/ops.json` records host dispatch/wait times for the last graph run. `GOOYA_EXPERIMENTAL_METAL_GEMM=mfa|ggml|mlx` selects a research kernel. Leave both unset for ordinary use. These switches do not establish quality acceptance. Further speed work needs a materially different compute path or a separately validated lower-precision/fewer-pass model; this profiling pass found no safe kernel-switch speedup.
