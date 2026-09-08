@@ -1,0 +1,19 @@
+{
+  "host": "rezo@stallion",
+  "gpu": "NVIDIA GeForce RTX 5080 Laptop GPU",
+  "backend": "tract-cuda",
+  "runtime_source": "Reza2kn/tract shenava branch, CUDA 13.0",
+  "graph_load_seconds": 11.181033531,
+  "warm_graph_run_seconds": [0.20484655, 0.169086882, 0.233484985, 0.189467736],
+  "consumer": {
+    "cold_wall_seconds": 16.109912727,
+    "cold_generation_seconds": 4.37842749,
+    "warm_wall_seconds": 5.033040512,
+    "warm_generation_seconds": 4.352260034,
+    "audio_seconds": 2.03,
+    "byte_identical_cold_warm": true
+  },
+  "runtime_library_note": "Use system CUDA cuBLAS first, then the existing Gooya app lib directory for cuDNN: LD_LIBRARY_PATH=/usr/local/cuda/targets/x86_64-linux/lib:/usr/local/cuda/lib64:/home/rezo/.local/share/gooya/lib",
+  "quality": "Consumer WAV generated successfully; paired Shenava scoring remains to be run on this CUDA output.",
+  "promotion": false
+}

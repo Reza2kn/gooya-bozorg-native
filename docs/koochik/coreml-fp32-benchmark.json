@@ -1,0 +1,25 @@
+{
+  "runtime": "Core ML",
+  "coremltools": "9.0",
+  "requested_compute_units": "ALL",
+  "load_seconds": 12.846757374936715,
+  "run_seconds": [
+    4.072498792083934,
+    0.571136417100206,
+    0.8205585409887135,
+    1.9121304168365896
+  ],
+  "output_sha256": [
+    "c7061936be806b3bb22c20a4784c159c641ccf8eb39d069d66467ebdfee0b4a2",
+    "c7061936be806b3bb22c20a4784c159c641ccf8eb39d069d66467ebdfee0b4a2",
+    "c7061936be806b3bb22c20a4784c159c641ccf8eb39d069d66467ebdfee0b4a2",
+    "c7061936be806b3bb22c20a4784c159c641ccf8eb39d069d66467ebdfee0b4a2"
+  ],
+  "finite": true,
+  "package_bytes": 1843340936,
+  "device_plan_note": "Anticipated placement reported by Core ML, not hardware trace.",
+  "planned_operation_devices": {
+    "unknown": 1901,
+    "MLGPUComputeDevice": 1944
+  }
+}

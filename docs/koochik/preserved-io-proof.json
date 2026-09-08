@@ -1,0 +1,17 @@
+[
+  {
+    "name": "model.llm.embed_tokens.weight",
+    "sha256": "4efc909834cae130d6a8e3fe3f0e262f17174716a591f2e17d54f565ed27e845",
+    "exact": true
+  },
+  {
+    "name": "model.audio_embeddings.weight",
+    "sha256": "e818ec6f7ca05c2f871fc98015730035782b195fcfcd4a0c8eb1acff75eb4710",
+    "exact": true
+  },
+  {
+    "name": "model.audio_heads.weight",
+    "sha256": "073cccd72a0de6215b4f0ff466db920cf86fab80fa1df10573d5013b24a6a21d",
+    "exact": true
+  }
+]

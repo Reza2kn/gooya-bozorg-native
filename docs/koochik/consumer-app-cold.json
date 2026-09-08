@@ -1,0 +1,21 @@
+{
+  "audio_sha256": "f133ccd238ba49c4f3275ad9c06effa2b662de61691e32a8d3a9e097ed961260",
+  "response": {
+    "text": "سلام حالت چطوره؟",
+    "greedy": "سلام حالت چطوره؟",
+    "elapsed_ms": 815,
+    "backend": "gpu-or-cpu",
+    "decoder": "greedy",
+    "version": "0.1.1",
+    "decoder_revision": "sentencepiece-v2"
+  },
+  "raw_transcript": "سلام حالت چطوره؟",
+  "normalized_transcript": "سلام حالت چطوره",
+  "elapsed_seconds": 0.8661574171856046,
+  "passes": true,
+  "backend": "tract-metal",
+  "wall_seconds": 31.344259833,
+  "generation_seconds": 16.347646958,
+  "steps": 24,
+  "consumer": "actual wry app, button click via accessibility"
+}

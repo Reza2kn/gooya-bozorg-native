@@ -1,0 +1,25 @@
+{
+  "host": "rezo@stallion",
+  "endpoint_on_host": "http://127.0.0.1:13012/transcribe",
+  "process_id": null,
+  "binary_sha256": "b0406b73078723b89d6bc0eb7768fb7d852db4cb2686a7a245b2d1ac7a1a85b7",
+  "model_sha256": "0bfdf9fc3c531f351ad02d7d6b4b309da7ff2f73eb20e2ae167fa12d074c75ac",
+  "tokens_sha256": "8e192963f6e666dfa5721e5cbd4710bc1ef592460a45f08cefc94b2db16a6954",
+  "decoder": "greedy",
+  "decoder_revision": "sentencepiece-v2",
+  "server_version": "0.1.1",
+  "backend_reported": "gpu-or-cpu",
+  "actual_cpu_or_cuda_not_exposed": true,
+  "hotwords": false,
+  "requested_mode": "offline",
+  "previous_binary_sha256": "47d092cb890d97d3101bc5efb1a38e4ef99d10e333c136f2b8748beb094860c2",
+  "fresh_source_and_candidate": true,
+  "source_transcripts_match_previous_screen": true,
+  "recognizer_response_identity": {
+    "backend": "gpu-or-cpu",
+    "decoder": "greedy",
+    "version": "0.1.1",
+    "decoder_revision": "sentencepiece-v2"
+  },
+  "note": "Original service disappeared; isolated evaluator uses the current executable and unchanged model/token assets. All source audio was retranscribed. Startup reports gpu-or-cpu, not proof of executed CUDA."
+}

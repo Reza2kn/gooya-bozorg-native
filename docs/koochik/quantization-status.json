@@ -1,0 +1,159 @@
+{
+  "source_revision": "537bb48320fd657415eef5b4fb6796b6cebab195",
+  "promotion": false,
+  "candidates": [
+    {
+      "method": "W8 per row, FP32 dequantization",
+      "speech_weight_bytes": 614822512,
+      "first_real_step_argmax_agreement": 0.9325,
+      "status": "failed strict numerical screen"
+    },
+    {
+      "method": "W8 group 32, FP32 dequantization",
+      "speech_weight_bytes": 689341104,
+      "full_32_step_code_agreement_case_00": 0.39215686274509803,
+      "status": "failed strict code gate; not a perceptual quality score"
+    },
+    {
+      "method": "lossless zstd, FP32 runtime",
+      "bundle_bytes": 1159913123,
+      "status": "user rejected download size; local reference only"
+    },
+    {
+      "method": "native tract Q4_0 plus compact text vocabulary",
+      "status": "failed full Shenava suite: 6 word differences across 67 source transcript words",
+      "initial_conversion_failure": "BlockQuantTransform assumed constant matrix in input slot zero; normalize operands and axis mappings before conversion",
+      "size": {
+        "speech_q4_nnef_bytes": 301326336,
+        "speech_archive_bytes": 259107996,
+        "other_components_bytes": 131942849,
+        "projected_complete_download_bytes": 391071418,
+        "note": "Concrete-shape canary model; not yet a general-input release. All frontend/codec components remain FP32."
+      },
+      "full_generation": {
+        "code_agreement": 0.10784313725490197,
+        "passes_strict_code_gate": false,
+        "promotion": false
+      },
+      "first_step": {
+        "target_logit_cosine": 0.999907259496101,
+        "target_argmax_agreement": 0.21200980392156862,
+        "max_abs": 7.460371971130371
+      },
+      "vocabulary_pruning": {
+        "cosine": 0.9999999999997764,
+        "argmax_agreement": 1.0,
+        "max_abs": 0.00038909912109375,
+        "retained_rows": 3190
+      },
+      "performance_note": "First native Q4 path logged roughly 9-11 seconds per step on the local Mac, slower than FP32; not a controlled performance benchmark",
+      "shenava_canary": {
+        "metric": "1 - corpus WER(candidate Shenava transcript, source Shenava transcript)",
+        "normalization": "NFKC; ZWNJ to space; remove ZWSP; Arabic yeh/kaf to Persian; Unicode punctuation to spaces; collapse whitespace",
+        "word_errors": 0,
+        "word_total": 3,
+        "word_parity": 1.0,
+        "threshold_strictly_greater_than": 0.98,
+        "passes": true,
+        "cases": 1,
+        "scope": "finite paired suite; not a perceptual-quality or unseen-text guarantee",
+        "results": [
+          {
+            "id": "case-00-q4",
+            "requested_text": "\u0633\u0644\u0627\u0645\u060c \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647\u061f",
+            "endpoint": "http://127.0.0.1:13011/transcribe",
+            "source": {
+              "audio_sha256": "c29460ef37404361cda71fe354bd23b8142560a280458b68dc7255b5e64e5ac7",
+              "response": {
+                "text": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647\u061f",
+                "greedy": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647\u061f",
+                "elapsed_ms": 2390,
+                "backend": "gpu-or-cpu",
+                "decoder": "greedy",
+                "version": "0.1.1",
+                "decoder_revision": "sentencepiece-v2"
+              },
+              "raw_transcript": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647\u061f",
+              "normalized_transcript": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647",
+              "elapsed_seconds": 2.4508765421342105
+            },
+            "candidate": {
+              "audio_sha256": "4d36e94e43c43b9f98aaf5f97aba030c742a51a95f16b56976840d702befdcc6",
+              "response": {
+                "text": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647\u061f",
+                "greedy": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647\u061f",
+                "elapsed_ms": 738,
+                "backend": "gpu-or-cpu",
+                "decoder": "greedy",
+                "version": "0.1.1",
+                "decoder_revision": "sentencepiece-v2"
+              },
+              "raw_transcript": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647\u061f",
+              "normalized_transcript": "\u0633\u0644\u0627\u0645 \u062d\u0627\u0644\u062a \u0686\u0637\u0648\u0631\u0647",
+              "elapsed_seconds": 0.7640577920246869
+            },
+            "word_errors": 0,
+            "word_total": 3,
+            "char_errors": 0,
+            "char_total": 13,
+            "word_parity": 1.0,
+            "char_parity": 1.0,
+            "source_vs_requested_word_errors": 0,
+            "candidate_vs_requested_word_errors": 0,
+            "nonempty": true
+          }
+        ]
+      },
+      "shenava_full_suite": {
+        "metric": "1 - corpus WER between paired Shenava transcripts",
+        "cases": 12,
+        "word_errors": 6,
+        "word_total": 67,
+        "word_parity": 0.9104477611940298,
+        "passes": false
+      }
+    },
+    {
+      "method": "grouped W6A32, group size 32; compact vocabulary; zstd",
+      "bundle_bytes": 485532926,
+      "status": "failed full paired Shenava gate",
+      "canary_case_10_word_parity": 1.0,
+      "shenava_word_parity": 0.9701492537313433,
+      "word_errors": 2,
+      "word_total": 67
+    },
+    {
+      "method": "W6 group32 with FP16 linear arithmetic",
+      "status": "rejected first Shenava canary: one word difference out of three",
+      "word_parity_case_00": 0.6666666666666666,
+      "promotion": false
+    },
+    {
+      "method": "W7 group32 FP32 arithmetic, 16 diffusion passes",
+      "bundle_bytes": 543161334,
+      "status": "failed full paired Shenava gate",
+      "word_parity": 0.9552238805970149,
+      "word_errors": 3,
+      "word_total": 67
+    },
+    {
+      "method": "W6 group32, exact input/output weights, FP32 arithmetic, 16 passes",
+      "bundle_bytes": 503670910,
+      "status": "failed full paired Shenava gate",
+      "word_parity": 0.9701492537313433,
+      "word_errors": 2,
+      "word_total": 67
+    },
+    {
+      "method": "W6 group32, exact input/output weights, FP32 tract Metal, 24 passes",
+      "bundle_bytes": 503670910,
+      "status": "full Shenava gate and actual native consumer passed; publication pending destination approval",
+      "word_parity": 0.9850746268656716,
+      "word_errors": 1,
+      "word_total": 67
+    }
+  ],
+  "download_target_bytes": 500000000,
+  "acceptance_metric": "Shenava transcription parity, as clarified by user",
+  "publication_status": "blocked by automatic approval review for new HF destination"
+}

@@ -26,16 +26,24 @@ ndarray = "0.17"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.10"
+unicode_categories = "0.1"
+zstd = "0.13"
 tokenizers = { version = "0.21", default-features = false, features = ["onig"] }
 tract-onnx = "=0.23.4"
+tract-nnef = "=0.23.4"
 tract-core = "=0.23.4"
 tract-linalg = { version = "=0.23.4", features = ["multithread-mm"] }
 env_logger = "0.11"
 
 [target.'cfg(target_os = "macos")'.dependencies]
+tract-metal = "=0.23.4"
+objc = "0.2.7"
+block = "0.1.6"
+half = "2.7.1"
 ort = { version = "2.0.0-rc.13", default-features = false, features = ["std", "ndarray", "download-binaries", "copy-dylibs", "api-27", "tls-rustls", "lax-feature-matching", "coreml"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
+tract-shenava = { package = "tract", git = "https://github.com/Reza2kn/tract", branch = "shenava", default-features = false, features = ["cuda-13000"] }
 ort = { version = "2.0.0-rc.13", default-features = false, features = ["std", "ndarray", "download-binaries", "copy-dylibs", "api-27", "tls-rustls", "lax-feature-matching", "cuda"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]

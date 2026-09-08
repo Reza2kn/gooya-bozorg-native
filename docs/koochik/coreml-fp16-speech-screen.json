@@ -1,0 +1,66 @@
+{
+  "runtime": "Core ML speech graph; Python source sampler; ORT CPU codec",
+  "screening_only": true,
+  "steps": 24,
+  "load_seconds": 28.425952083896846,
+  "generation_seconds": 5.245067541021854,
+  "pass_seconds": [
+    0.2771554170176387,
+    0.16957483417354524,
+    0.17462120787240565,
+    0.1798428341280669,
+    0.19573787483386695,
+    0.19902854110114276,
+    0.1960524159949273,
+    0.19419150007888675,
+    0.19554537488147616,
+    0.20238583302125335,
+    0.21637112507596612,
+    0.2678488749079406,
+    0.2506272089667618,
+    0.2496524581220001,
+    0.24125420791096985,
+    0.21733275009319186,
+    0.23566304217092693,
+    0.22268208395689726,
+    0.2176308750640601,
+    0.2156995830591768,
+    0.21564191696234047,
+    0.22197570791468024,
+    0.24633870786055923,
+    0.2383982080500573
+  ],
+  "audio_seconds": 2.07,
+  "source": {
+    "audio_sha256": "c29460ef37404361cda71fe354bd23b8142560a280458b68dc7255b5e64e5ac7",
+    "response": {
+      "text": "سلام حالت چطوره؟",
+      "greedy": "سلام حالت چطوره؟",
+      "elapsed_ms": 804,
+      "backend": "gpu-or-cpu",
+      "decoder": "greedy",
+      "version": "0.1.1",
+      "decoder_revision": "sentencepiece-v2"
+    },
+    "raw_transcript": "سلام حالت چطوره؟",
+    "normalized_transcript": "سلام حالت چطوره",
+    "elapsed_seconds": 0.8607681251596659
+  },
+  "candidate": {
+    "audio_sha256": "9e4106cba869e35d78c7cc97d00a7171f3477b571d6cb04b3c911c10a1aadfa1",
+    "response": {
+      "text": "سلام هت چطوره؟",
+      "greedy": "سلام هت چطوره؟",
+      "elapsed_ms": 850,
+      "backend": "gpu-or-cpu",
+      "decoder": "greedy",
+      "version": "0.1.1",
+      "decoder_revision": "sentencepiece-v2"
+    },
+    "raw_transcript": "سلام هت چطوره؟",
+    "normalized_transcript": "سلام هت چطوره",
+    "elapsed_seconds": 0.8726556249894202
+  },
+  "word_errors": 1,
+  "word_total": 3
+}
