@@ -43,6 +43,7 @@ half = "2.7.1"
 ort = { version = "2.0.0-rc.13", default-features = false, features = ["std", "ndarray", "download-binaries", "copy-dylibs", "api-27", "tls-rustls", "lax-feature-matching", "coreml"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
+tract-shenava = { package = "tract", git = "https://github.com/Reza2kn/tract", branch = "shenava", default-features = false, features = ["cuda-13000"] }
 ort = { version = "2.0.0-rc.13", default-features = false, features = ["std", "ndarray", "download-binaries", "copy-dylibs", "api-27", "tls-rustls", "lax-feature-matching", "cuda"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]

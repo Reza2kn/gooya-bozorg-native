@@ -32,8 +32,71 @@ pub fn read_inputs(path: &Path) -> Result<Vec<Tensor>> {
 }
 pub enum Graph {
     Tract(std::sync::Arc<TypedRunnableModel>),
+    #[cfg(target_os = "linux")]
+    Cuda(CudaGraph),
     #[cfg(target_os = "macos")]
     CoreMl(crate::koochik_coreml::Model),
+}
+
+#[cfg(target_os = "linux")]
+pub struct CudaGraph {
+    runnable: tract_shenava::Runnable,
+}
+
+#[cfg(target_os = "linux")]
+impl CudaGraph {
+    fn load(path: &Path) -> Result<Self> {
+        use tract_shenava::prelude::*;
+        let model = tract_shenava::onnx()?.load(path)?.into_model()?;
+        let runtime = tract_shenava::runtime_for_name("cuda")?;
+        eprintln!(
+            "Koochik backend: {}",
+            runtime.name().unwrap_or_else(|_| "cuda".into())
+        );
+        Ok(Self {
+            runnable: runtime.prepare(model)?,
+        })
+    }
+
+    fn run(&self, inputs: &[Tensor]) -> Result<TVec<TValue>> {
+        use tract_shenava::prelude::*;
+        let mut converted = Vec::with_capacity(inputs.len());
+        for input in inputs {
+            let shape = input.shape().to_vec();
+            match input.datum_type() {
+                tract_onnx::prelude::DatumType::F32 => {
+                    let data = input.to_plain_array_view::<f32>()?;
+                    converted.push(tract_shenava::Tensor::from_slice(
+                        &shape,
+                        data.as_slice().context("non-contiguous FP32 input")?,
+                    )?);
+                }
+                tract_onnx::prelude::DatumType::I64 => {
+                    let data = input.to_plain_array_view::<i64>()?;
+                    converted.push(tract_shenava::Tensor::from_slice(
+                        &shape,
+                        data.as_slice().context("non-contiguous I64 input")?,
+                    )?);
+                }
+                tract_onnx::prelude::DatumType::Bool => {
+                    let data = input.to_plain_array_view::<bool>()?;
+                    converted.push(tract_shenava::Tensor::from_slice(
+                        &shape,
+                        data.as_slice().context("non-contiguous bool input")?,
+                    )?);
+                }
+                dtype => bail!("unsupported CUDA input type {dtype:?}"),
+            }
+        }
+        let outputs = self.runnable.run(converted)?;
+        outputs
+            .into_iter()
+            .map(|output| {
+                let (shape, data) = output.as_shape_and_slice::<f32>()?;
+                Ok(tract_onnx::prelude::Tensor::from_shape(shape, data)?.into_tvalue())
+            })
+            .collect()
+    }
 }
 fn wants_metal() -> bool {
     match std::env::var("GOOYA_KOOCHIK_DEVICE").as_deref() {
@@ -147,6 +210,12 @@ impl Graph {
         Self::Tract(plan)
     }
     pub fn load(path: &Path, inputs: &[Tensor]) -> Result<Self> {
+        #[cfg(target_os = "linux")]
+        if path.file_name().is_some_and(|n| n == "step.onnx")
+            && std::env::var("GOOYA_KOOCHIK_DEVICE").as_deref() == Ok("cuda")
+        {
+            return Ok(Self::Cuda(CudaGraph::load(path)?));
+        }
         if path.file_name().is_some_and(|n| n == "step.onnx")
             && std::env::var("GOOYA_KOOCHIK_DEVICE").as_deref() == Ok("coreml")
         {
@@ -293,6 +362,8 @@ impl Graph {
             }
             #[cfg(target_os = "macos")]
             Self::CoreMl(_) => "coreml",
+            #[cfg(target_os = "linux")]
+            Self::Cuda(_) => "tract-cuda",
         }
     }
     pub fn begin_decode(&self, steps: usize) -> Result<()> {
@@ -306,6 +377,8 @@ impl Graph {
     pub fn run(&self, inputs: &[Tensor]) -> Result<TVec<TValue>> {
         let plan = match self {
             Self::Tract(plan) => plan,
+            #[cfg(target_os = "linux")]
+            Self::Cuda(graph) => return graph.run(inputs),
             #[cfg(target_os = "macos")]
             Self::CoreMl(model) => return model.run(inputs),
         };
