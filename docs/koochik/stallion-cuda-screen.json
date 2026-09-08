@@ -1,0 +1,15 @@
+{
+  "host": "rezo@stallion",
+  "gpu": "NVIDIA GeForce RTX 5080 Laptop GPU",
+  "graph": "Gooya Koochik v2 compact bundle, exact expanded weights",
+  "runtime": "ONNX Runtime 1.29 CUDA provider",
+  "result": "rejected",
+  "error": "cudaErrorNoKernelImageForDevice",
+  "detail": "ORT failed in the Cast node because the prebuilt CUDA provider has no kernel image for this GPU architecture.",
+  "cpu_control": {
+    "backend": "tract-cpu",
+    "load_seconds": 11.360150611,
+    "run_seconds": [2.972935201, 2.971672344, 3.120767516, 3.037346532]
+  },
+  "promotion": false
+}
