@@ -66,15 +66,31 @@ For the same FP32 inputs, the default MLX kernel produced the same output SHA be
 
 `GOOYA_PROFILE_OPS=/path/to/ops.json` records host dispatch/wait times for the last graph run. `GOOYA_EXPERIMENTAL_METAL_GEMM=mfa|ggml|mlx` selects a research kernel. Leave both unset for ordinary use. These switches do not establish quality acceptance. Further speed work needs a materially different compute path or a separately validated lower-precision/fewer-pass model; this profiling pass found no safe kernel-switch speedup.
 
-## Core ML investigation
+## Core ML quality work
 
-The user clarified an Apple Core ML preference. The existing tract backend's `MetalMlxGemm` names a matrix kernel; it does not run the MLX framework. Core ML is being evaluated as a separate Apple-specific backend and is not yet wired into the Koochik app.
+Core ML is an opt-in Apple speech backend through direct Objective-C API calls from Rust. The sampler remains Rust and the codec remains tract CPU. The existing tract `MetalMlxGemm` name refers to a matrix kernel, not the MLX framework.
 
-A fixed sequence-length 350 Core ML package was converted from the accepted grouped weights, reconstructing the exact stored weight values and compact embedding lookup in PyTorch. Core ML Tools 9.0 required NumPy 2.2.6 to avoid its scalar-cast incompatibility with NumPy 2.5.3; Torch 2.11 is outside its advertised tested range. Export and actual package inference succeeded. These packages are canaries, not general-input releases.
+The fixed-capacity 419 export reconstructs the accepted grouped weights exactly. Short inputs preserve their original positions and attention block; appended keys are masked from real queries. An FP32 padding control retained 100% logit argmax agreement (`coreml-padding-control.json`). This export supports only phrases that fit its capacity and is not a general-input release.
 
-- FP16: warm fixed-input passes 0.154–0.159 seconds; compute plan prefers Neural Engine for 1,921 operations, CPU for 19 (1,899 constants/other entries have no reported device). This is planned placement, not a hardware execution trace. Full 24-pass generation took 5.25 seconds, excluding 28.43 seconds of package loading and frontend/codec. Shenava heard `سلام هت چطوره` instead of `سلام حالت چطوره`: failed canary. Speech package alone is 922 MB before additional compression.
-- FP32: warm fixed-input passes 0.57–1.91 seconds, GPU placement, 1.84 GB package. No material consistent speed win established; complete speech quality not evaluated.
-- FP16 with FP32 output-head/logit operations: complete generation 8.49 seconds, excluding 59.97 seconds of initial loading; same failed pronunciation. Not promoted.
-- Selective tract transformer FP16: 196 matrix products changed; staged speech test rejected after two word differences in the first three tested cases. This already exceeds the one-difference allowance in the frozen 67-word suite. See `precision-trunk-screen.json`.
+Two full 12-clip Python screens passed the strict >98% Shenava gate:
 
-Core ML timings use its real native prediction API via Python. Speech screening uses the source Python sampler and ORT CPU codec; it is not Rust consumer acceptance. No Core ML artifact has passed the full twelve-clip gate or been published. The accepted 504 MB tract model remains the app default. Reproduction tools are `coreml_canary.py`, `coreml_benchmark.py`, `coreml_speech_canary.py`, and `precision_canary.py`. `GOOYA_EXPERIMENTAL_FP16_SCOPE` supports `mlp`, `attention`, `trunk`, and `all`; leave it unset for accepted inference.
+| Core ML policy | Word differences | Corpus parity |
+| --- | --- | --- |
+| FP32, 24 passes | 1 / 67 | 98.5075% |
+| 24 passes: first 8 FP32, middle 8 FP16, final 8 FP32 | 1 / 67 | 98.5075% |
+
+The mixed policy repairs errors found with all-FP16 inference. These screens use Core ML prediction, the source Python sampler, and ORT CPU codec; see `coreml-python-mixed24.json` and `coreml-python-fp32-24.json`. The suite was used to select the policy, so this is development-set fidelity, not an unseen-text or perceptual-quality guarantee. The separate full native Rust run also passed at **98.5075% (1/67)**: `coreml-native-parity.json`. This uses direct Core ML calls, Rust sampling, and the tract CPU codec. `coreml-native-model-identity.json` and `coreml-native-runtime.json` pin the compiled models and executable. The earlier recognizer service disappeared and its on-disk executable had changed; an isolated evaluator retranscribed both sides with unchanged model/token hashes. All twelve source transcripts matched the earlier screen. See `coreml-native-recognizer.json`; no historical and fresh hypotheses were mixed.
+
+Rejected experiments remain in `coreml-rejected-policies.json`: 32-pass prefix-only precision schedules accumulated at least two differences; enumerated shapes were slow and mispronounced the greeting; norm-preserving conversion did not finish model loading within seven minutes. More steps alone did not fix quality. Earlier all-FP16 and protected-output-head canaries both produced `هت` for `حالت`. Selective tract FP16 also failed (`precision-trunk-screen.json`).
+
+Core ML Tools 9.0 requires the tested NumPy 2.2.6 environment here; NumPy 2.5.3 triggered a scalar-cast conversion error. Torch 2.11 is outside Core ML Tools' advertised tested range. The compile cache keys package contents, tool version, OS version and compute units, and uses independent APFS copy-on-write copies where available.
+
+For local research, set `GOOYA_KOOCHIK_DEVICE=coreml`, `GOOYA_KOOCHIK_COREML_FP32` to the compiled FP32 `.mlmodelc` directory, `GOOYA_KOOCHIK_COREML_FP16` to its FP16 counterpart, and `GOOYA_KOOCHIK_COREML_MIXED=1`. Omit the mixed flag to use FP32 throughout. `koochik_native_suite BUNDLE CASES SUITE.json OUTPUT` retains the models while running the frozen suite. `koochik_consumer_check BUNDLE OUTPUT TEXT` checks raw-text synthesis and cache reuse.
+
+The accepted 504 MB tract bundle remains the default download. The two Core ML research packages total about 2.77 GB before compression and are not a size-compliant replacement. No Core ML artifact is published. Compute-plan device placement is anticipated placement, not a hardware trace; compact packaging and broader input coverage remain required before promotion.
+
+### Native consumer verification
+
+`coreml-native-consumer.json` records raw Persian `سلام، حالت چطوره؟` through the same synthesis function used by the app. Shenava returned the correct greeting. Cold and warm WAVs were byte-identical and the speech graph was reused. On the M2, cold end-to-end time was 66.99 seconds, cached end-to-end time 14.04 seconds, and the output lasted 2.05 seconds. Speech generation itself took 10.82 / 11.96 seconds. Peak process memory footprint was 4.03 GB; this is not a separate VRAM measurement. No concurrent local build ran during this consumer timing.
+
+The release suite and consumer binaries built successfully; `cargo check --offline --locked --manifest-path webview/Cargo.toml` passed. Existing Objective-C macro warnings and the transitive block crate future-compatibility warning remain. The GUI was not rebuilt or clicked for this change. Core ML remains opt-in until compact packaging, longer-input coverage and listening approval are complete; the old default download is unchanged.

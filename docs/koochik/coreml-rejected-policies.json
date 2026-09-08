@@ -1,0 +1,80 @@
+[
+  {
+    "artifact": "coreml-hybrid419/s32-prefix8/summary.json",
+    "runtime": "Core ML prediction; source Python sampler; ORT CPU codec",
+    "screening_only": true,
+    "compiled_cache_reused": false,
+    "fp32_prefix": 8,
+    "cases": 3,
+    "full_suite_cases": 12,
+    "steps": 32,
+    "load_seconds": 70.04517908301204,
+    "word_errors": 2,
+    "word_total": 15,
+    "word_parity": 0.8666666666666667,
+    "passes": false
+  },
+  {
+    "artifact": "coreml-hybrid419/s32-prefix16/summary.json",
+    "runtime": "Core ML prediction; source Python sampler; ORT CPU codec",
+    "screening_only": true,
+    "compiled_cache_reused": false,
+    "fp32_prefix": 16,
+    "cases": 12,
+    "full_suite_cases": 12,
+    "steps": 32,
+    "load_seconds": 55.757130041951314,
+    "word_errors": 2,
+    "word_total": 67,
+    "word_parity": 0.9701492537313433,
+    "passes": false
+  },
+  {
+    "artifact": "coreml-hybrid419/s32-prefix24/summary.json",
+    "runtime": "Core ML prediction; source Python sampler; ORT CPU codec",
+    "screening_only": true,
+    "compiled_cache_reused": false,
+    "fp32_prefix": 24,
+    "cases": 2,
+    "full_suite_cases": 12,
+    "steps": 32,
+    "load_seconds": 50.66669674986042,
+    "word_errors": 2,
+    "word_total": 7,
+    "word_parity": 0.7142857142857143,
+    "passes": false
+  },
+  {
+    "artifact": "coreml-static419-fp16/s32/summary.json",
+    "runtime": "Core ML prediction; source Python sampler; ORT CPU codec",
+    "screening_only": true,
+    "cases": 2,
+    "full_suite_cases": 12,
+    "steps": 32,
+    "load_seconds": 50.37646354199387,
+    "word_errors": 3,
+    "word_total": 6,
+    "word_parity": 0.5,
+    "passes": false
+  },
+  {
+    "artifact": "coreml-norms/load-result.json",
+    "status": "terminated after over seven minutes without completing MLModel load",
+    "inference_ran": false,
+    "quality_unknown": true,
+    "reason": "superseded by original 32-pass FP16 candidate with successful greeting"
+  },
+  {
+    "artifact": "coreml-suite-fp16/s32/summary.json",
+    "runtime": "Core ML prediction; source Python sampler; ORT CPU codec",
+    "screening_only": true,
+    "cases": 1,
+    "full_suite_cases": 12,
+    "steps": 32,
+    "load_seconds": 30.686336542014033,
+    "word_errors": 1,
+    "word_total": 3,
+    "word_parity": 0.6666666666666667,
+    "passes": false
+  }
+]

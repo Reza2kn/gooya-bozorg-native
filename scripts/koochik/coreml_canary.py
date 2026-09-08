@@ -7,7 +7,7 @@ import numpy as np, torch, onnx
 from onnx import numpy_helper
 from omnivoice.models.omnivoice import OmniVoice
 import coremltools as ct
-p=argparse.ArgumentParser();p.add_argument('--source',type=Path,required=True);p.add_argument('--bundle',type=Path,required=True);p.add_argument('--inputs',type=Path,required=True);p.add_argument('--out',type=Path,required=True);p.add_argument('--precision',choices=['fp16','fp32','protected'],default='fp16');a=p.parse_args();a.out.mkdir(parents=True,exist_ok=True)
+p=argparse.ArgumentParser();p.add_argument('--source',type=Path,required=True);p.add_argument('--bundle',type=Path,required=True);p.add_argument('--inputs',type=Path,required=True);p.add_argument('--out',type=Path,required=True);p.add_argument('--precision',choices=['fp16','fp32','protected'],default='fp16');p.add_argument('--cases-dir',type=Path);a=p.parse_args();a.out.mkdir(parents=True,exist_ok=True)
 torch.set_num_threads(4)
 class MappedEmbedding(torch.nn.Module):
  def __init__(self,w,m):
@@ -41,7 +41,14 @@ if not package.exists():
   np.save(a.out/'torch_logits.npy',wrapped(*args).numpy());traced=torch.jit.trace(wrapped,args,check_trace=False).eval()
  del wrapped,model;gc.collect()
  print('Tracing complete; converting Core ML',flush=True)
- inputs=[ct.TensorType(name=n,shape=v.shape,dtype=v.dtype)for n,v in zip(['ids','mask','attention','pos'],vals)]
+ shapes=None
+ if a.cases_dir:
+  shapes=[];seen=set()
+  for path in sorted(a.cases_dir.glob('case-*/step-00/inputs.json')):
+   rs=json.loads(path.read_text());key=tuple(tuple(r['shape']) for r in rs)
+   if key not in seen:shapes.append(key);seen.add(key)
+  assert len(shapes)>1
+ inputs=[ct.TensorType(name=n,shape=ct.EnumeratedShapes(shapes=[sh[i]for sh in shapes],default=v.shape) if shapes else v.shape,dtype=v.dtype)for i,(n,v) in enumerate(zip(['ids','mask','attention','pos'],vals))]
  precision=ct.precision.FLOAT32
  if a.precision=='fp16':precision=ct.precision.FLOAT16
  elif a.precision=='protected':

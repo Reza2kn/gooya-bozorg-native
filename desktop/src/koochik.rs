@@ -1,4 +1,4 @@
-//! Tract-only OmniVoice diffusion decoding. Artifact promotion is a separate parity gate.
+//! Native OmniVoice diffusion decoding with tract and optional Core ML. Artifact promotion is a separate parity gate.
 use anyhow::{Context, Result, bail, ensure};
 use serde::Deserialize;
 use std::{fs, path::Path, time::Instant};
@@ -30,8 +30,10 @@ pub fn read_inputs(path: &Path) -> Result<Vec<Tensor>> {
         })
         .collect()
 }
-pub struct Graph {
-    plan: std::sync::Arc<TypedRunnableModel>,
+pub enum Graph {
+    Tract(std::sync::Arc<TypedRunnableModel>),
+    #[cfg(target_os = "macos")]
+    CoreMl(crate::koochik_coreml::Model),
 }
 fn wants_metal() -> bool {
     match std::env::var("GOOYA_KOOCHIK_DEVICE").as_deref() {
@@ -43,15 +45,25 @@ fn wants_metal() -> bool {
 fn optimize_step(mut model: TypedModel, allow_fp16: bool) -> Result<TypedModel> {
     if allow_fp16 {
         if let Ok(device) = std::env::var("GOOYA_KOOCHIK_DEVICE") {
-            ensure!(["cpu", "metal", "auto"].contains(&device.as_str()), "device must be cpu, metal, or auto");
+            ensure!(
+                ["cpu", "metal", "auto"].contains(&device.as_str()),
+                "device must be cpu, metal, or auto"
+            );
         }
         #[cfg(not(target_os = "macos"))]
         ensure!(!wants_metal(), "Metal is only supported on macOS");
     }
     let precision = std::env::var("GOOYA_EXPERIMENTAL_FP16_SCOPE").unwrap_or_else(|_| {
-        if std::env::var_os("GOOYA_EXPERIMENTAL_FP16_LINEAR").is_some() { "all".into() } else { "none".into() }
+        if std::env::var_os("GOOYA_EXPERIMENTAL_FP16_LINEAR").is_some() {
+            "all".into()
+        } else {
+            "none".into()
+        }
     });
-    ensure!(["none", "mlp", "attention", "trunk", "all"].contains(&precision.as_str()), "invalid FP16 scope");
+    ensure!(
+        ["none", "mlp", "attention", "trunk", "all"].contains(&precision.as_str()),
+        "invalid FP16 scope"
+    );
     let mut converted = 0usize;
     if allow_fp16 && precision != "none" {
         // Cast only constant-weight matrix products. Keep graph boundaries,
@@ -65,7 +77,9 @@ fn optimize_step(mut model: TypedModel, allow_fp16: bool) -> Result<TypedModel> 
                 "all" => true,
                 _ => false,
             };
-            if !selected { continue; }
+            if !selected {
+                continue;
+            }
             if let Some(op) = node.op_as::<tract_core::ops::einsum::EinSum>() {
                 if op.operating_dt != DatumType::F32
                     || !node
@@ -100,26 +114,49 @@ fn optimize_step(mut model: TypedModel, allow_fp16: bool) -> Result<TypedModel> 
                 converted += 1;
             }
         }
-        ensure!(converted > 0, "FP16 scope matched no constant-weight matrix products");
+        ensure!(
+            converted > 0,
+            "FP16 scope matched no constant-weight matrix products"
+        );
         eprintln!("Koochik experimental FP16 scope={precision}: {converted} matrix products");
     }
     #[cfg(target_os = "macos")]
     if allow_fp16 && wants_metal() {
         use tract_core::transform::ModelTransform;
         let transform: tract_metal::MetalTransform = std::env::var("GOOYA_EXPERIMENTAL_METAL_GEMM")
-            .unwrap_or_default().parse()?;
+            .unwrap_or_default()
+            .parse()?;
         transform.transform(&mut model)?;
-        let count = model.nodes().iter().filter(|n| n.op.name().starts_with("Metal")).count();
-        ensure!(count > 0, "Metal requested but no Metal operators were created");
-        eprintln!("Koochik backend: tract-metal, {count} Metal operators; FP16 matrix products={converted}");
+        let count = model
+            .nodes()
+            .iter()
+            .filter(|n| n.op.name().starts_with("Metal"))
+            .count();
+        ensure!(
+            count > 0,
+            "Metal requested but no Metal operators were created"
+        );
+        eprintln!(
+            "Koochik backend: tract-metal, {count} Metal operators; FP16 matrix products={converted}"
+        );
     }
     Ok(model.into_optimized()?)
 }
 impl Graph {
     pub fn from_plan(plan: std::sync::Arc<TypedRunnableModel>) -> Self {
-        Self { plan }
+        Self::Tract(plan)
     }
     pub fn load(path: &Path, inputs: &[Tensor]) -> Result<Self> {
+        if path.file_name().is_some_and(|n| n == "step.onnx")
+            && std::env::var("GOOYA_KOOCHIK_DEVICE").as_deref() == Ok("coreml")
+        {
+            #[cfg(target_os = "macos")]
+            {
+                return Ok(Self::CoreMl(crate::koochik_coreml::Model::from_env()?));
+            }
+            #[cfg(not(target_os = "macos"))]
+            bail!("Core ML requires macOS");
+        }
         if path.to_string_lossy().ends_with(".nnef.tar") {
             return Self::load_nnef_shaped(path, true, inputs);
         }
@@ -140,13 +177,13 @@ impl Graph {
             )),
             ..Default::default()
         };
-        Ok(Self {
-            plan: optimize_step(
+        Ok(Self::from_plan(
+            optimize_step(
                 m.into_typed()?.into_decluttered()?,
                 path.file_name().is_some_and(|n| n == "step.onnx"),
             )?
             .into_runnable_with_options(&options)?,
-        })
+        ))
     }
     /// Q4 is the download format. Unpacking uses faster dense CPU matrix kernels
     /// for OmniVoice's whole-sequence diffusion, at the cost of runtime RAM.
@@ -206,17 +243,15 @@ impl Graph {
             )),
             ..Default::default()
         };
-        Ok(Self {
-            plan: {
-                let plan = optimize_step(m.into_decluttered()?, true)?
-                    .into_runnable_with_options(&options)?;
-                eprintln!(
-                    "Koochik graph preparation: {:.2}s",
-                    start.elapsed().as_secs_f32()
-                );
-                plan
-            },
-        })
+        Ok(Self::from_plan({
+            let plan =
+                optimize_step(m.into_decluttered()?, true)?.into_runnable_with_options(&options)?;
+            eprintln!(
+                "Koochik graph preparation: {:.2}s",
+                start.elapsed().as_secs_f32()
+            );
+            plan
+        }))
     }
     pub fn load_g2p_decoder(path: &Path, source: usize) -> Result<Self> {
         let mut m = tract_onnx::onnx().model_for_path(path)?;
@@ -236,24 +271,48 @@ impl Graph {
             .retain(|pass| !format!("{pass:?}").starts_with("FoldUniformMask"));
         declutter.optimize(&mut model)?;
         model.optimize()?;
-        Ok(Self {
-            plan: model.into_runnable()?,
-        })
+        Ok(Self::from_plan(model.into_runnable()?))
     }
     pub fn load_dynamic(path: &Path) -> Result<Self> {
         let m = tract_onnx::onnx().model_for_path(path)?;
-        Ok(Self {
-            plan: m.into_optimized()?.into_runnable()?,
-        })
+        Ok(Self::from_plan(m.into_optimized()?.into_runnable()?))
     }
     pub fn backend(&self) -> &'static str {
-        if self.plan.model().nodes().iter().any(|n| n.op.name().starts_with("Metal")) { "tract-metal" } else { "tract-cpu" }
+        match self {
+            Self::Tract(plan) => {
+                if plan
+                    .model()
+                    .nodes()
+                    .iter()
+                    .any(|n| n.op.name().starts_with("Metal"))
+                {
+                    "tract-metal"
+                } else {
+                    "tract-cpu"
+                }
+            }
+            #[cfg(target_os = "macos")]
+            Self::CoreMl(_) => "coreml",
+        }
+    }
+    pub fn begin_decode(&self, steps: usize) -> Result<()> {
+        #[cfg(target_os = "macos")]
+        if let Self::CoreMl(model) = self {
+            return model.begin_decode(steps);
+        }
+        let _ = steps;
+        Ok(())
     }
     pub fn run(&self, inputs: &[Tensor]) -> Result<TVec<TValue>> {
+        let plan = match self {
+            Self::Tract(plan) => plan,
+            #[cfg(target_os = "macos")]
+            Self::CoreMl(model) => return model.run(inputs),
+        };
         let run = || {
             let values = inputs.iter().cloned().map(|x| x.into_tvalue()).collect();
             if let Some(path) = std::env::var_os("GOOYA_PROFILE_OPS") {
-                let mut state = tract_core::plan::SimpleState::new(&self.plan)?;
+                let mut state = tract_core::plan::SimpleState::new(plan)?;
                 let mut rows = Vec::new();
                 let outputs = state.run_plan_with_eval(values, |session, state, node, values| {
                     let start = Instant::now();
@@ -264,15 +323,19 @@ impl Graph {
                 fs::write(path, serde_json::to_vec_pretty(&rows)?)?;
                 Ok(outputs)
             } else {
-                self.plan.run(values)
+                plan.run(values)
             }
         };
         // Rust worker threads have no Cocoa event-loop pool. Metal command
         // buffers otherwise retain temporary resources across diffusion passes.
         #[cfg(target_os = "macos")]
-        { objc::rc::autoreleasepool(run) }
+        {
+            objc::rc::autoreleasepool(run)
+        }
         #[cfg(not(target_os = "macos"))]
-        { run() }
+        {
+            run()
+        }
     }
 }
 pub fn default_steps() -> usize {
@@ -313,6 +376,7 @@ pub fn decode_with_progress(
         [8, 16, 24, 32].contains(&steps),
         "supported step counts: 8, 16, 24, 32"
     );
+    graph.begin_decode(steps)?;
     let n = 8 * t;
     let mut tokens = vec![1024i64; n];
     let mut remaining = n;

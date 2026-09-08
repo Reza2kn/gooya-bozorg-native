@@ -1723,8 +1723,10 @@ version = "1.5.0"
 dependencies = [
  "anyhow",
  "arabic_reshaper",
+ "block",
  "eframe",
  "env_logger",
+ "half",
  "ndarray",
  "objc",
  "ort",

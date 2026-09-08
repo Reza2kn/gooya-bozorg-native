@@ -1,0 +1,59 @@
+{
+  "source_repo": "Reza2kn/Gooya-Koochik-v2.0-exp",
+  "source_revision": "537bb48320fd657415eef5b4fb6796b6cebab195",
+  "policy": "24 passes: FP32 0..7 and 16..23; FP16 8..15",
+  "sequence_capacity": 419,
+  "models": {
+    "fp32": {
+      "path": "/Users/Ajab/conductor/workspaces/gooya-1/nairobi/artifacts/gooya-koochik-tract/coreml-static419-fp32/compiled-dce9f15395ce737719c9.mlmodelc",
+      "files": [
+        {
+          "path": "analytics/coremldata.bin",
+          "bytes": 243,
+          "sha256": "d15947e2596d8a57e5444b60303a58850ca1e018f977d2dd23ee046505e463ac"
+        },
+        {
+          "path": "coremldata.bin",
+          "bytes": 445,
+          "sha256": "1fc54e6f293ab9153cd484017012cc1cef28285b7087edefccd508816dce0f58"
+        },
+        {
+          "path": "model.mil",
+          "bytes": 557736,
+          "sha256": "777ffc12c3b4e0577239df3b704cb77379f632184a5d02ee6d5fb00eae120467"
+        },
+        {
+          "path": "weights/weight.bin",
+          "bytes": 1842795488,
+          "sha256": "f2cc24f20d5cb9ca4791e059a8f59e639a2ddaaf9af53592fb2dfe1d48977e80"
+        }
+      ]
+    },
+    "fp16": {
+      "path": "/Users/Ajab/conductor/workspaces/gooya-1/nairobi/artifacts/gooya-koochik-tract/coreml-static419-fp16/compiled-b89dcdc9d5033b3d4d15.mlmodelc",
+      "files": [
+        {
+          "path": "analytics/coremldata.bin",
+          "bytes": 243,
+          "sha256": "b1af960ec92390b1ad9f8ddd7fb8795fa44622a0af96fe0fc885564dd6f3734e"
+        },
+        {
+          "path": "coremldata.bin",
+          "bytes": 445,
+          "sha256": "0299cba5814ec0c7f87b2077f19228aad48e9f9ebcf99bd85f04f5c1fc9acac9"
+        },
+        {
+          "path": "model.mil",
+          "bytes": 634121,
+          "sha256": "778037c1bbeeb3b0c9f5e9771092dee0a28ce32db620f160a96f78d3199cf2eb"
+        },
+        {
+          "path": "weights/weight.bin",
+          "bytes": 921407952,
+          "sha256": "fb0835ace153d1f8319152a614344ffb9eecff6906c70302d47525956f19f7cb"
+        }
+      ]
+    }
+  },
+  "published": false
+}

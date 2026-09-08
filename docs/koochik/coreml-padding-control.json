@@ -1,0 +1,9 @@
+{
+  "runtime": "ORT CPU FP32 padding equivalence control",
+  "original_length": 350,
+  "padded_length": 419,
+  "max_abs": 0.00021457672119140625,
+  "mean_abs": 4.074815478816163e-06,
+  "argmax_agreement": 1.0,
+  "finite": true
+}

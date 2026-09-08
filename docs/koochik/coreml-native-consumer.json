@@ -1,0 +1,52 @@
+{
+  "cache_reused": true,
+  "cold": {
+    "backend": "coreml",
+    "duration_seconds": 2.05,
+    "generation_seconds": 10.824274958,
+    "loaded_speech_graph": true,
+    "model": "Gooya Koochik v2.0-exp",
+    "phrases": [
+      "s a l A m , / h A l e t / C e t o r e h ?"
+    ],
+    "samples": 49200,
+    "wall_seconds": 66.988027625,
+    "wav_path": "artifacts/gooya-koochik-tract/native-coreml-consumer/cold.wav"
+  },
+  "identical_wav": true,
+  "warm": {
+    "backend": "coreml",
+    "duration_seconds": 2.05,
+    "generation_seconds": 11.96432725,
+    "loaded_speech_graph": false,
+    "model": "Gooya Koochik v2.0-exp",
+    "phrases": [
+      "s a l A m , / h A l e t / C e t o r e h ?"
+    ],
+    "samples": 49200,
+    "wall_seconds": 14.03800725,
+    "wav_path": "artifacts/gooya-koochik-tract/native-coreml-consumer/warm.wav"
+  },
+  "shenava": {
+    "audio_sha256": "65f7592f88a6fcf8646bca1f90b1fc49a33d504b2a75aa44530a3c7eed86cc91",
+    "response": {
+      "text": "سلام حالت چطوره؟",
+      "greedy": "سلام حالت چطوره؟",
+      "elapsed_ms": 746,
+      "backend": "gpu-or-cpu",
+      "decoder": "greedy",
+      "version": "0.1.1",
+      "decoder_revision": "sentencepiece-v2",
+      "mode": "offline",
+      "diarization": false,
+      "segments": null
+    },
+    "raw_transcript": "سلام حالت چطوره؟",
+    "normalized_transcript": "سلام حالت چطوره",
+    "elapsed_seconds": 0.8234593328088522
+  },
+  "binary_sha256": "7b65b3bd0875e8a1fb666248a62f0325ee753a02451cdad68d923d5aaeeb6854",
+  "peak_memory_footprint_bytes": 4030679944,
+  "device": "Apple M2, 24 GiB unified memory",
+  "gui_rebuilt_or_clicked": false
+}
