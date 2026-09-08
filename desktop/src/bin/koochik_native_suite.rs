@@ -27,8 +27,8 @@ fn main() -> Result<()> {
     let start = Instant::now();
     let graph = Graph::load(&step, &initial)?;
     ensure!(
-        graph.backend() == "coreml",
-        "this suite runner currently requires Core ML's fixed-capacity backend"
+        matches!(graph.backend(), "coreml" | "tract-cuda"),
+        "this suite runner requires Core ML or tract-cuda"
     );
     let load_seconds = start.elapsed().as_secs_f64();
     let voice = koochik_bundle::voice(&a[0])?;
@@ -54,7 +54,7 @@ fn main() -> Result<()> {
         let processed = koochik_bundle::postprocess(raw, voice.rms);
         koochik::write_wav(&out.join("processed.wav"), &processed, 24000)?;
         fs::write(out.join("codes.json"), serde_json::to_vec(&codes)?)?;
-        let report = serde_json::json!({"id":id,"backend":"coreml","runtime":"native Rust Core ML speech, Rust sampler, tract CPU codec","steps":fixture.num_steps,"coreml_mixed":std::env::var_os("GOOYA_KOOCHIK_COREML_MIXED").is_some(),"shared_model_load_seconds":load_seconds,"generation_seconds":generation_seconds,"audio_seconds":processed.len() as f64/24000.,"binary_sha256":binary_hash,"coreml_fp32":std::env::var("GOOYA_KOOCHIK_COREML_FP32").ok(),"coreml_fp16":std::env::var("GOOYA_KOOCHIK_COREML_FP16").ok(),"promotion":false});
+        let report = serde_json::json!({"id":id,"backend":graph.backend(),"runtime":"native Rust speech, Rust sampler, tract CPU codec","steps":fixture.num_steps,"coreml_mixed":std::env::var_os("GOOYA_KOOCHIK_COREML_MIXED").is_some(),"shared_model_load_seconds":load_seconds,"generation_seconds":generation_seconds,"audio_seconds":processed.len() as f64/24000.,"binary_sha256":binary_hash,"coreml_fp32":std::env::var("GOOYA_KOOCHIK_COREML_FP32").ok(),"coreml_fp16":std::env::var("GOOYA_KOOCHIK_COREML_FP16").ok(),"promotion":false});
         fs::write(out.join("report.json"), serde_json::to_vec_pretty(&report)?)?;
         println!("{report}");
     }
