@@ -287,6 +287,10 @@ fn create_window(
                             name: name.to_owned(),
                         });
                     })
+                    .and_then(|_| {
+                        gooya_native_desktop::koochik_bundle::prewarm(&root)
+                            .map_err(|error| anyhow::anyhow!("Koochik prewarm failed: {error:#}"))
+                    })
                     .map(|_| String::from("Koochik ready"))
                     .map_err(|e| format!("{e:#}"));
                 let _ = proxy.send_event(UserEvent::FetchDone(result));
