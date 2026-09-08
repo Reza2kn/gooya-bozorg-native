@@ -237,6 +237,17 @@ fn create_window(
     let model_dir_for_job = model_dir.clone();
     let tokenizer_for_job = tokenizer_path.clone();
 
+    // Specialize the tract Metal speech graph while the UI is idle. Without this,
+    // the first click pays the roughly 12-second graph-load cost.
+    if koochik_ready {
+        let prewarm_root = koochik_dir.clone();
+        std::thread::spawn(move || {
+            if let Err(error) = gooya_native_desktop::koochik_bundle::prewarm(&prewarm_root) {
+                eprintln!("Koochik prewarm skipped: {error:#}");
+            }
+        });
+    }
+
     let handler = move |req: wry::http::Request<String>| {
         let body = req.body().clone();
         let proxy = proxy.clone();

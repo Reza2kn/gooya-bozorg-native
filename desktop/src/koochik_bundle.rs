@@ -526,13 +526,11 @@ pub fn synthesize_with_progress(
     seed: u64,
     progress: &mut dyn FnMut(&str),
 ) -> Result<Report> {
-    static ENGINE: std::sync::OnceLock<std::sync::Mutex<Option<Engine>>> =
-        std::sync::OnceLock::new();
+    let engine = engine_cache();
     let start = std::time::Instant::now();
     let root = root.canonicalize()?;
     let manifest = fs::read(root.join("manifest.json"))?;
-    let mut cached = ENGINE
-        .get_or_init(|| std::sync::Mutex::new(None))
+    let mut cached = engine
         .lock()
         .map_err(|_| anyhow::anyhow!("speech engine lock poisoned"))?;
     if cached
@@ -546,6 +544,41 @@ pub fn synthesize_with_progress(
     let mut report = cached.as_mut().unwrap().synthesize(out, text, seed, progress)?;
     report.wall_seconds = start.elapsed().as_secs_f64();
     Ok(report)
+}
+
+static ENGINE: std::sync::OnceLock<std::sync::Mutex<Option<Engine>>> = std::sync::OnceLock::new();
+
+fn engine_cache() -> &'static std::sync::Mutex<Option<Engine>> {
+    ENGINE.get_or_init(|| std::sync::Mutex::new(None))
+}
+
+/// Load the compact tract engine and specialize its speech graph in the background.
+/// This intentionally performs no diffusion steps or audio generation.
+pub fn prewarm(root: &Path) -> Result<()> {
+    let root = root.canonicalize()?;
+    let manifest = fs::read(root.join("manifest.json"))?;
+    let mut cached = engine_cache()
+        .lock()
+        .map_err(|_| anyhow::anyhow!("speech engine lock poisoned"))?;
+    if cached
+        .as_ref()
+        .is_none_or(|e| e.root != root || e.manifest != manifest || !e.assets_unchanged())
+    {
+        *cached = Some(Engine::load(&root, manifest)?);
+    }
+    let engine = cached.as_mut().unwrap();
+    let phrase = "سلام حالت چطوره؟";
+    let paced = paced(phrase, &engine.frontend.phones(phrase)?);
+    let (inputs, tokens) = inputs(&engine.root, &paced)?;
+    let shape = inputs[0].shape().to_vec();
+    if engine.graph.as_ref().is_none_or(|(s, _)| *s != shape) {
+        engine.graph = Some((shape, Graph::load(&engine.step, &inputs)?));
+    }
+    let codec_inputs = vec![Tensor::zero::<i64>(&[1, 8, tokens])?];
+    if engine.codec.as_ref().is_none_or(|(length, _)| *length != tokens) {
+        engine.codec = Some((tokens, Graph::load(&engine.root.join("decoder.onnx"), &codec_inputs)?));
+    }
+    Ok(())
 }
 pub fn synthesize(root: &Path, out: &Path, text: &str, seed: u64) -> Result<Report> {
     synthesize_with_progress(root, out, text, seed, &mut |message| eprintln!("{message}"))
